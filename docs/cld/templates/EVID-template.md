@@ -1,12 +1,7 @@
-# EVID-NNN: [Title]
+# EVID-YYYY-NNN: [Title]
 
-## Linked Story
-
-- ST-NNN: [Title]
-
-## Linked Hypothesis
-
-- HYP-NNN: [Assumption being tested]
+Story: ST-YYYY-NNN
+Hypothesis: HYP-YYYY-NNN
 
 ## What Was Built
 
@@ -16,24 +11,24 @@ _Brief description of the implementation. Link to PR or commit._
 
 ## What Was Tested
 
-_How was the acceptance criteria verified? What test types were used?_
+_Reference the Smallest Possible Test defined in the story or hypothesis. Which test was executed?_
 
-## Results
+## Expected vs Actual
 
-_Expected vs actual. What did the test show compared to what the hypothesis predicted? Be factual._
+- Expected:
+- Actual:
 
-## Hypothesis Update
+## Decision
 
-_Does this evidence confirm, refine, or falsify HYP-NNN? State the updated belief._
+_Based on the evidence: confirm, reject, or refine the hypothesis._
 
-- [ ] Confirmed — evidence supports the assumption
-- [ ] Partially confirmed — evidence supports with caveats (explain)
-- [ ] Falsified — assumption was wrong (explain)
+- Hypothesis status: Confirmed / Rejected / Inconclusive
+- Action taken:
 
 ## What Remains Uncertain
 
 _What new questions surfaced? What risks or unknowns were not resolved?_
 
-## Next Decision
+## Next Step
 
-_Based on this evidence, what is the recommended next action?_
+_New hypothesis, additional test, ship, or stop. Every evidence record must end with a decision — not a shrug._

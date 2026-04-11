@@ -1,23 +1,26 @@
-# ST-NNN: [Title]
+# ST-YYYY-NNN: [Title]
 
-## Linked Hypothesis
+Initiative: INIT-YYYY-NNN
+Hypothesis: HYP-YYYY-NNN
 
-- HYP-NNN: [Assumption being tested]
+## Slice
 
-## Goal
+_What thin vertical slice is implemented? This should be the smallest piece of work that reduces uncertainty about the hypothesis._
 
-_One sentence: what does this story deliver and why does it matter to the hypothesis?_
+## Expected Behavior
 
-## Acceptance Criteria
+_This IS the test spec. State as concrete, executable examples. Each must be verifiable._
 
-_These are the test spec. State as executable examples or observable outcomes. Each criterion must be verifiable._
+- Given [context]...
+- When [action]...
+- Then [outcome]...
 
-- [ ] Given [context], when [action], then [outcome]
-- [ ] Given [context], when [action], then [outcome]
+## Smallest Possible Test
 
-## Test Level
+_What is the cheapest test that validates this behavior? Choose the test level by what proves the behavior, not by convention._
 
-_What is the chosen test level (unit, integration, E2E, manual observation) and why is it sufficient to validate the hypothesis? Do not default to a level by convention._
+- Test type: Unit / Integration / E2E / Manual observation / Log query / Other
+- Why this level is sufficient:
 
 ## Scope Boundary
 
@@ -29,10 +32,16 @@ _What is the chosen test level (unit, integration, E2E, manual observation) and 
 
 - _(list explicitly what is deferred — prevents scope creep)_
 
-## Implementation Notes
+## Constraints
 
-_Optional: constraints, known risks, or approach hints. Not a design doc — keep brief._
+_Security, performance, UX, compatibility — anything the implementation must respect. Optional; omit if none._
+
+## Evidence Required Before Merge
+
+- [ ] Smallest possible test passes
+- [ ] Expected behavior examples covered
+- [ ] Production observation plan defined (for user-facing changes)
 
 ## Evidence
 
-- EVID-NNN: _(link after delivery)_
+- EVID-YYYY-NNN: _(link after delivery)_
