@@ -8,8 +8,8 @@ The Review agent checks that the work produced by Discovery and Delivery is trac
 
 ## Inputs
 
-- A PR with linked ST-_ and HYP-_
-- The ST-_.md, HYP-_.md, and INIT-\*.md documents
+- A PR with linked ST-\* and HYP-\*
+- The ST-\*.md, HYP-\*.md, and INIT-\*.md documents
 - The EVID-\*.md produced by Delivery
 - The code and test changes in the PR
 
@@ -23,7 +23,7 @@ The Review agent checks that the work produced by Discovery and Delivery is trac
 
 **Must do:**
 
-- Verify the full chain: HYP-_ → ST-_ → IMPL → EVID-\* exists and is internally consistent
+- Verify the full chain: HYP-\* → ST-\* → IMPL → EVID-\* exists and is internally consistent
 - Check that acceptance criteria in ST-\* are actually tested (not just claimed)
 - Verify the test level is appropriate for the claim — a unit test cannot confirm a hypothesis about user behavior
 - Identify assumptions that remain untested after this story
@@ -33,9 +33,31 @@ The Review agent checks that the work produced by Discovery and Delivery is trac
 **Must not do:**
 
 - Approve a PR that lacks a linked ST-\*
-- Approve a ST-_ that lacks a linked HYP-_
+- Approve a ST-\* that lacks a linked HYP-\*
 - Accept "tests pass" as sufficient evidence without verifying the tests cover the acceptance criteria
 - Ignore scope creep — if the implementation exceeds the story boundary, flag it
+
+## Anti-Gaming Heuristics
+
+Flag (do not auto-reject, but require explanation) when:
+
+- **Hypothesis ≈ implementation:** hypothesis phrasing is so close to the code change that it could have been written after the fact
+- **Strawman alternative:** the alternative hypothesis in HYP-\*.md is suspiciously short, obviously weak, or nearly identical to the primary hypothesis
+- **Trivial falsification:** the falsification signal is too generic (e.g. "it doesn't work", "tests fail") — a real falsification signal names a specific observable outcome
+- **Happy-path-only test:** the test only validates the success case; no failure or edge case is covered
+
+## Hypothesis-Evidence Type Check
+
+Flag when the evidence type doesn't match the hypothesis type:
+
+| Hypothesis type                           | Valid evidence                             |
+| ----------------------------------------- | ------------------------------------------ |
+| Behavioral ("users will do X")            | Observation, usage data, session recording |
+| Value ("this will improve Y")             | Outcome metric, retention, conversion      |
+| Technical ("this implementation will...") | Automated tests, benchmarks                |
+| Operational ("this will hold under load") | Metrics, monitoring, load test             |
+
+A unit test cannot confirm a behavioral hypothesis. A usage metric cannot confirm a technical one.
 
 ## Assumption Laundering (Red Flag)
 

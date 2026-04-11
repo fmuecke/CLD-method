@@ -26,7 +26,7 @@ Any team using the CLD workflow on a shared repository. Most acute when:
 
 ## Success Signal
 
-PRs that lack a ST-_ reference fail CI. PRs that reference a ST-_ that lacks a HYP-\* also fail CI. Fast-lane PRs that include explicit justification pass.
+PRs that lack a ST-\* reference fail CI. PRs that reference a ST-\* that lacks a HYP-\* also fail CI. Fast-lane PRs that include explicit justification pass.
 
 ## Related Documents
 

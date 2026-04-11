@@ -8,9 +8,21 @@
 
 We believe that failing CI on PRs missing a `ST-*` reference will cause developers to complete the HYP→ST chain before merging — rather than finding workarounds — because the gate is low-friction to satisfy for legitimate work and high-friction to bypass without explicit intent.
 
+## Why a Positive Result Is Not Trivial
+
+A passing script on canned inputs only proves the script works in the test harness. The real hypothesis is about developer behavior — compliance could be superficial (hollow documents). A skeptic would say: "They filled in the fields; that doesn't mean the thinking changed."
+
+## Alternative Hypothesis
+
+Developers will comply with the gate format (fill in ST-\* links) without genuinely engaging with the HYP→ST chain, producing compliant-looking but hollow artifacts. The gate shifts gaming, not behavior.
+
 ## Smallest Possible Test
 
 An integration test: run `check-pr-links.sh` with a set of canned PR bodies (with ST-\* link, without, with `[fast-lane]`) and assert exit codes. This is sufficient — it validates the gate behavior without needing a real GitHub repo or live PRs.
+
+## Time to Evidence
+
+Script behavior: hours. Behavioral response (does the gate change thinking, not just format): 4–6 weeks of pilot PRs in Phase 4.
 
 ## Validation Method
 

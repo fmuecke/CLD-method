@@ -22,6 +22,11 @@ _What is the cheapest test that validates this behavior? Choose the test level b
 - Test type: Unit / Integration / E2E / Manual observation / Log query / Other
 - Why this level is sufficient:
 
+## Decision Type
+
+- [ ] **Reversible** — low cost to undo; fast-lane CI checks apply
+- [ ] **Irreversible / high-impact** — API contract, data model, public interface, or user-facing change; full CLD required: confidence level and reversal trigger must appear in the PR
+
 ## Scope Boundary
 
 **In scope:**

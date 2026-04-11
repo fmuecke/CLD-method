@@ -1,7 +1,10 @@
-# Project: Closed-Loop Delivery (CLD)
+# Project: Closed-Loop Delivery (CLD) — v2
 
 > The goal is not iteration. The goal is a closed loop where every step produces
 > evidence, and progress is only allowed when that evidence reduces uncertainty.
+
+CLD is a system of skeptical forcing functions around decisions under uncertainty —
+not a documentation workflow.
 
 ## Working Hypothesis
 
@@ -43,19 +46,19 @@
 - Teams report fewer "built the wrong thing" incidents.
 - The overhead feels lighter than the rework it prevents.
 
-## Core Principle: Smallest Possible Test
+## Core Principle: Every Step Reduces Uncertainty
 
-> Every hypothesis implies its own test. Find the cheapest test that would confirm
-> or reject it. Implement against that test. The test result _is_ the evidence.
+> Every next step is blocked until a specific uncertainty has been reduced.
+> This improves the value signal and lowers the risk of building the wrong thing.
 
-This is the evidence mechanism of the closed loop. It applies at every level:
+This principle applies at every level:
 
 - **Hypothesis** → "What would prove this wrong?" → that question defines the test.
 - **Story** → expected behavior (Given/When/Then) _is_ the test spec, not a separate artifact.
 - **Implementation** → write the one test that validates the behavior, then implement against it.
 - **Evidence** → test result = expected vs actual = confirmation or rejection.
 - **Review** → doesn't ask "is coverage high enough?" — asks "does the test actually
-  validate the hypothesis?"
+  falsify the hypothesis if the result is negative?"
 
 Test level (unit, integration, E2E, manual observation) is chosen by what's simplest
 to validate the claim — not by convention, not by coverage targets. A well-chosen
@@ -65,15 +68,60 @@ details.
 This kills the coverage illusion: you're not optimizing for lines covered,
 you're optimizing for **uncertainty reduced per test**.
 
+## Design Philosophy: Skeptical Forcing Functions
+
+CLD uses two kinds of gates:
+
+### Hard gates (CI-enforced)
+
+Structural requirements that block progress when missing. These catch omissions, not quality:
+
+- Missing hypothesis reference
+- No falsification signal defined
+- No test or observation plan
+- No reversal trigger on irreversible decisions
+
+### Soft gates (review-enforced)
+
+Judgment calls that require human or review-agent assessment:
+
+- Is the falsification signal actually discriminating?
+- Is the alternative hypothesis a real competitor or a strawman?
+- Does the evidence type match the hypothesis type?
+- Is the interpretation of results sound?
+
+**The distinction matters.** Hard gates prevent skipping. Soft gates prevent gaming.
+Neither alone is sufficient. CI guarantees traceability. Review guards truth.
+
+## Known Boundaries
+
+CLD explicitly targets **assumption-driven failure** in agent-assisted development.
+It does not claim to solve:
+
+- **Integration complexity / operational brittleness** — different failure mode, different tools.
+- **Organizational incentives** — CLD is repo-level, not org-change. If incentives reward
+  shipping fast over being right, people will route around any process.
+- **Tacit knowledge** — architecture intuition, UX feel, "this smells wrong" don't compress
+  into HYP → ST → TEST → EVIDENCE. CLD handles the formalizable subset. Senior judgment
+  remains the last gate.
+- **Time-to-market pressure** — CLD adds friction. The bet is that this friction costs less
+  than the rework it prevents. Phase 4 must validate this.
+
+These boundaries should be documented in `docs/cld/boundaries.md` and revisited after
+the pilot.
+
 ## Risks & Constraints
 
-| Risk                                               | Mitigation                                                    |
-| -------------------------------------------------- | ------------------------------------------------------------- |
-| Templates feel like compliance paperwork           | Keep schemas minimal; fast-lane for trivial changes           |
-| Over-constraining kills exploration                | Enforce _thinking quality_, not artifacts                     |
-| Agent instructions are advisory, not hard gates    | CI checks as the real enforcement layer                       |
-| Non-formalizable uncertainty (user value, context) | Hybrid: tool-enforced constraints + human validation loops    |
-| Platform fragmentation across agents               | Single-source role definitions, platform-specific projections |
+| Risk                                                         | Mitigation                                                                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Templates feel like compliance paperwork                     | Keep schemas minimal; fast-lane for trivial/reversible changes                                                     |
+| Over-constraining kills exploration                          | Explicit exploration mode; enforce _thinking quality_, not artifacts                                               |
+| Agent instructions are advisory, not hard gates              | CI checks as the real enforcement layer                                                                            |
+| Non-formalizable uncertainty (user value, context)           | Hybrid: hard gates for structure + soft gates for judgment                                                         |
+| Platform fragmentation across agents                         | Single-source role definitions, platform-specific projections                                                      |
+| **Agents generate compliant nonsense**                       | **Anti-gaming heuristics in review; falsification + alternative hypothesis as structural requirements**            |
+| **Validation illusion (test passes ≠ hypothesis confirmed)** | **Falsification criteria force thinking about false positives; hypothesis typing flags evidence/claim mismatches** |
+| **Goodhart's Law on artifacts**                              | **Gate questions, not document checklists; review checks meaning, CI checks structure**                            |
 
 ## Target Environment
 
@@ -115,25 +163,49 @@ you're optimizing for **uncertainty reduced per test**.
 - `docs/hypotheses/`
 - `docs/stories/`
 - `docs/evidence/`
-- `docs/decisions/`
-- `docs/experiments/`
+- `docs/decisions/` — lightweight; most decisions live in PRs, this is for cross-cutting decisions only
+- `docs/experiments/` — outputs from exploration mode
 - `docs/cld/agents/` — canonical role definitions (platform-neutral)
+- `docs/cld/boundaries.md` — what CLD does not claim to solve
 
   0.3. Write minimal document templates (1 each):
 
-- Initiative (`INIT-*.md`)
-- Hypothesis (`HYP-*.md`) — must include "smallest possible test" field:
-  what is the cheapest way to confirm or reject this?
-- Story (`ST-*.md`) — expected behavior = the test spec; includes chosen test level and why that level is sufficient
-- Evidence (`EVID-*.md`) — test result = expected vs actual = decision
+- **Initiative** (`INIT-*.md`)
+
+- **Hypothesis** (`HYP-*.md`) — must include:
+  - **Falsification signal:** what result would make this hypothesis unlikely or wrong?
+  - **Why a positive result is not trivial:** prevents "user clicked = validated"
+  - **Alternative hypothesis:** what else could explain the problem? Why do we prefer the current hypothesis?
+  - **Time to evidence:** how quickly can we get signal? (hours / days / weeks). Prefer worse test sooner over perfect test later.
+
+- **Story** (`ST-*.md`) — expected behavior = the test spec; includes:
+  - Chosen test level and why that level is sufficient
+  - Decision type: reversible (low cost to undo) or irreversible (high cost / user impact)
+
+- **Evidence** (`EVID-*.md`) — test result = expected vs actual = decision
 
   0.4. Write canonical agent role definitions (platform-neutral):
-  - `docs/cld/agents/discovery.md` — purpose, inputs, outputs, constraints.
-    Must ask: "what is the smallest possible test for this hypothesis?"
-  - `docs/cld/agents/delivery.md` — implements against the smallest possible test.
-    Test level chosen by what validates the behavior, not by convention.
-  - `docs/cld/agents/review.md` — checks whether the test actually validates the
-    hypothesis, not whether coverage is high enough.
+
+- `docs/cld/agents/discovery.md` — purpose, inputs, outputs, constraints.
+  - Must not deliver implementation suggestions before at least one alternative explanation is formulated.
+  - Must ask: "What would falsify this hypothesis?"
+  - Must propose time-to-evidence target.
+
+- `docs/cld/agents/delivery.md` — implements against the falsification signal.
+  - Must not write code before the claim and its falsification signal are named.
+  - Test level chosen by what validates the behavior, not by convention.
+
+- `docs/cld/agents/review.md` — checks whether the test actually falsifies the hypothesis:
+  - Could this result happen if the hypothesis is wrong?
+  - What's the most likely alternative explanation for the result?
+  - What signal is still missing?
+  - **Anti-gaming heuristics:** flag if hypothesis phrasing ≈ implementation phrasing,
+    if test only validates happy path, if alternative hypothesis is weak/strawman (<20 chars
+    or suspiciously similar to primary), if no plausible falsification is defined.
+  - **Hypothesis-evidence type check:** flag when evidence type doesn't match hypothesis type
+    (e.g. unit test validating a value hypothesis, usage metric validating a technical hypothesis).
+    Reference typology: behavioral → observation/usage; value → outcome/retention;
+    technical → tests; operational → metrics.
 
     0.5. Write one real example through the full chain:
 
@@ -144,6 +216,7 @@ you're optimizing for **uncertainty reduced per test**.
 ### Exit criteria
 
 - One complete example chain exists and feels lightweight enough to use.
+- Falsification signal and alternative hypothesis feel natural, not bureaucratic.
 
 ---
 
@@ -156,19 +229,25 @@ you're optimizing for **uncertainty reduced per test**.
 1.1. **`AGENTS.md` at repo root** — single source of truth for CLD rules:
 
 - Repo-wide behavioral contract (no code without hypothesis, no scope invention, etc.)
-- Smallest Possible Test principle: every hypothesis and story must define the cheapest
-  test that would confirm or reject it. Test level chosen by what validates the claim.
+- Core principle: every step reduces uncertainty. Every next step is blocked until
+  a specific uncertainty-reducing challenge has been answered.
+- Falsification-first: every hypothesis must define what would disprove it.
+  Alternative hypothesis required. Time-to-evidence target required.
+- Agent forcing functions:
+  - Discovery: must not suggest implementation before alternative explanation exists.
+  - Delivery: must not write code before claim + falsification signal are named.
+  - Review: must not approve if test only confirms implementation, not hypothesis.
 - References canonical role definitions in `docs/cld/agents/`
 
   1.2. **GitHub Copilot projection:**
 
 - `.github/copilot-instructions.md` — imports/mirrors `AGENTS.md` content
 - `.github/agents/discovery.agent.md` — no production code, hypothesis focus,
-  must propose smallest possible test for each hypothesis
-- `.github/agents/delivery.agent.md` — story-scoped, implements against smallest
-  possible test before writing production code
-- `.github/agents/review.agent.md` — traceability, gap detection, validates that
-  test level matches the claim (not coverage theater)
+  must propose falsification signal and alternative hypothesis
+- `.github/agents/delivery.agent.md` — story-scoped, implements against falsification
+  signal before writing production code
+- `.github/agents/review.agent.md` — traceability, gap detection, anti-gaming heuristics,
+  validates that test level matches the claim (not coverage theater)
 
   1.3. **Claude Code projection:**
 
@@ -186,12 +265,17 @@ you're optimizing for **uncertainty reduced per test**.
 - Feed the same initiative to discovery role on each platform.
 - Feed the same story to delivery role on each platform.
 - Compare: does each platform respect the constraints?
+  - Does discovery refuse to code?
+  - Does discovery produce a falsification signal and alternative hypothesis?
+  - Does delivery refuse to invent scope?
+  - Does review catch gaps, including anti-gaming flags?
 - Document behavioral differences in `docs/cld/platform-notes.md`.
 
 ### Exit criteria
 
 - Each agent role behaves noticeably different from a generic coding agent — on every platform.
 - Discovery refuses to code. Delivery refuses to invent scope. Review catches gaps.
+- Forcing functions are observable: agents actually block on missing falsification/alternatives.
 - Platform-specific quirks are documented.
 
 ---
@@ -206,23 +290,41 @@ you're optimizing for **uncertainty reduced per test**.
 
 - Problem statement, who experiences it, evidence, assumptions, success signal.
 
-  2.2. Create PR template (`.github/pull_request_template.md`):
+  2.2. Create exploration issue template (`.github/ISSUE_TEMPLATE/cld-exploration.md`):
+
+- Goal: generate hypotheses, not validate them.
+- No hypothesis required upfront.
+- Outputs: observations, candidate hypotheses.
+- Time-boxed: must define when exploration ends and what "enough to hypothesize" looks like.
+- This prevents fake precision early and keeps CLD honest when understanding is still forming.
+
+  2.3. Create PR template (`.github/pull_request_template.md`):
 
 - Linked references (initiative, hypothesis, story).
-- What assumption does this address?
-- What is the smallest possible test, and why is this test level sufficient?
-- What remains uncertain?
+- **Gate questions** (not just fields to fill):
+  - What assumption is being acted on?
+  - What would falsify it?
+  - What is the cheapest acceptable signal, and why is it strong enough to proceed?
+  - What remains uncertain?
+- **Decision record** (embedded in PR, not a separate artifact):
+  - What are we choosing to believe now?
+  - Confidence: Low / Medium / High
+  - Reversal trigger: what would make us revisit this?
 - Post-release observation plan.
 
-  2.3. Define fast-lane criteria:
+  2.4. Define fast-lane criteria based on reversibility:
 
-- Which change types (bug fixes, refactors, deps) can skip full discovery?
-- Even fast-lane requires: expected effect, test evidence, rollback thought.
+- **Reversible + low-risk** (bug fixes, refactors, deps, config):
+  fast-lane — expected effect, test evidence, rollback thought. Skip full discovery.
+- **Irreversible or high-impact** (new features, API contracts, data model changes, public interfaces):
+  full CLD — falsification signal, alternative hypothesis, confidence level, reversal trigger.
+- Even fast-lane requires answering: "what could go wrong and how would we know?"
 
 ### Exit criteria
 
 - Every new issue and PR is guided by the template.
-- Fast-lane exists and doesn't feel like cheating.
+- Exploration mode exists and produces hypotheses, not code.
+- Fast-lane exists, is reversibility-based, and doesn't feel like cheating.
 
 ---
 
@@ -245,30 +347,44 @@ CI catches everything else server-side and cannot be skipped
 - `scripts/check-pr-template.sh` — required sections not empty/placeholder.
 - Install via a simple setup script or tool like `pre-commit` / `husky`.
 
-  3.2. **CI gate checks** (full traceability, needs repo context):
+  3.2. **CI gate checks — hard gates** (structural, non-bypassable):
 
 - `scripts/check-story-links.sh` — referenced story file must contain a `HYP-*` link.
+- `scripts/check-falsification.sh` — referenced `HYP-*` must have a non-empty
+  falsification signal and alternative hypothesis section.
 - `scripts/check-test-evidence.sh` — PR must include at least one test change that
   maps to the hypothesis or story behavior (or explicit justification for why no
   new test is needed). Validates presence, not coverage metrics.
+- `scripts/check-decision-fields.sh` — for PRs tagged irreversible/high-impact:
+  confidence level and reversal trigger must be present.
 - Cross-file validation that pre-commit hooks cannot do locally.
 
-  3.3. Create `.github/workflows/cld-gate-check.yml` running the full script suite.
+  3.3. **CI soft checks — anti-gaming flags** (warnings, not blockers):
 
-  3.4. Run against 3–5 real PRs to calibrate strictness.
+- Hypothesis phrasing similarity to implementation code (basic string/token overlap).
+- Alternative hypothesis suspiciously short or similar to primary.
+- Trivial falsification signals (too generic, e.g. "it doesn't work").
+- These produce warnings in the PR, not failures. Review agent or human reviewer acts on them.
+
+  3.4. Create `.github/workflows/cld-gate-check.yml` running the full script suite.
+
+  3.5. Run against 3–5 real PRs to calibrate strictness.
 
 - Too strict → teams route around it.
 - Too loose → no behavior change.
+- Too many false positives on anti-gaming flags → noise that gets ignored.
 
 ### Exit criteria
 
 - CI fails on PRs that skip the chain. Fast-lane PRs pass with lighter checks.
+- Anti-gaming flags fire on obviously weak hypotheses but don't block work.
 
 ---
 
 ## Phase 4 — Pilot with Real Work (Week 4–6)
 
 **Goal:** Build a small but real feature using CLD. Compare agent behavior across platforms.
+Validate that the overhead costs less than the rework it prevents.
 
 ### Steps
 
@@ -276,7 +392,7 @@ CI catches everything else server-side and cannot be skipped
 
 4.2. Run each slice through the full CLD workflow:
 
-- Issue → Initiative → Hypothesis → Story → Implementation → PR → Review → Evidence
+- Issue → Initiative → Hypothesis (with falsification + alternative) → Story → Implementation → PR (with decision record) → Review → Evidence
 
   4.3. Rotate agent platforms across slices:
 
@@ -286,25 +402,38 @@ CI catches everything else server-side and cannot be skipped
 - This produces comparable data on how each platform responds to the same constraints.
 
   4.4. Track friction points per platform:
-  - Where do agents try to skip steps?
-  - Which platform respects constraints best out of the box?
-  - Which templates feel too heavy?
-  - Which CI checks produce false positives?
 
-    4.5. Conduct a retrospective specifically on CLD:
+- Where do agents try to skip steps?
+- Which platform respects forcing functions best out of the box?
+- Do agents generate genuine falsification signals or compliant filler?
+- Do agents produce real alternative hypotheses or strawmen?
+- Which templates feel too heavy?
+- Which CI checks produce false positives?
+- Do anti-gaming flags catch real issues or just noise?
 
-  - Did it change what got built?
-  - Did it surface assumptions that would have been missed?
-  - What's the actual overhead vs perceived overhead?
-  - Which platform is the best fit for which role?
+  4.5. **Validate the core bet:**
 
-    4.6. Refine templates, agent instructions, and CI checks based on findings.
+- Did falsification signals catch anything that "smallest possible test" alone would have missed?
+- Did alternative hypotheses surface real alternatives or just waste time?
+- Did decision records with reversal triggers lead to any actual reversals?
+- At least one case where the closed loop prevented building the wrong thing.
+
+  4.6. Conduct a retrospective specifically on CLD:
+
+- Did it change what got built?
+- Did it surface assumptions that would have been missed?
+- What's the actual overhead vs perceived overhead?
+- Which platform is the best fit for which role?
+- **Which hardening additions (falsification, alternatives, decision records) earned their keep?**
+
+  4.7. Refine templates, agent instructions, and CI checks based on findings.
 
 ### Exit criteria
 
 - At least one case where the closed loop prevented building the wrong thing.
 - Platform comparison documented in `docs/cld/platform-notes.md`.
 - CLD does not feel like pure overhead.
+- **Evidence on whether hardening additions (falsification, alternatives, anti-gaming) are net positive.**
 
 ---
 
@@ -317,11 +446,13 @@ CI catches everything else server-side and cannot be skipped
 5.1. Create `prompts/evals/` with test cases for each agent role:
 
 - Discovery: does it challenge vague requests? Does it produce alternatives?
-  Does it propose a smallest possible test for each hypothesis?
-- Delivery: does it stay within scope? Does it write the smallest possible test
-  before production code? Does it choose the right test level for the claim?
-- Review: does it detect missing traceability? Does it flag coverage theater
-  (e.g. 50 unit tests that don't validate the actual hypothesis)?
+  Does it propose a falsification signal for each hypothesis?
+  Does it resist jumping to implementation before alternatives are explored?
+- Delivery: does it stay within scope? Does it write the test that matches the
+  falsification signal before production code? Does it choose the right test level?
+- Review: does it detect missing traceability? Does it flag coverage theater?
+  Does it catch gaming patterns (hypothesis ≈ implementation, strawman alternatives,
+  trivial falsification, evidence-type mismatch)?
 
   5.2. Build a small eval corpus from Phase 4 real examples (across all platforms).
 
@@ -357,11 +488,32 @@ CI catches everything else server-side and cannot be skipped
 
 # Summary
 
-> **Closed-Loop Delivery** — a repository-native constraint system that prevents
+> **Closed-Loop Delivery** — a system of skeptical forcing functions that prevents
 > AI agents and humans from skipping the uncomfortable parts: stating assumptions,
-> exploring alternatives, and validating before committing.
+> exploring alternatives, defining what would prove them wrong, and validating
+> before committing.
 >
-> Every gate asks one question: did you learn enough to continue?
+> Every gate asks one question: did you reduce enough uncertainty to continue?
+
+---
+
+# Appendix: Hardening Changelog (v1 → v2)
+
+Changes based on devil's advocate analysis and targeted hardening:
+
+| Change                                                                    | Addresses                                                       | Impact                        |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------- |
+| Falsification signal replaces "smallest possible test" as primary framing | Validation illusion (#2), CI quality gap (#5)                   | Tier 1                        |
+| Alternative hypothesis required in HYP-\*                                 | Confirmation bias (#2), agent gaming (#8)                       | Tier 1                        |
+| Decision record with reversal trigger embedded in PR template             | Process theater (#4), traceability ≠ truth (#5)                 | Tier 1                        |
+| Anti-gaming heuristics (review agent + CI soft checks)                    | Agent gaming (#8)                                               | Tier 1                        |
+| Hard/soft gate distinction                                                | CI can't enforce quality (#5), Goodhart's Law (#4)              | Design principle              |
+| Exploration mode (issue template)                                         | Premature framing (#9)                                          | Tier 2                        |
+| Reversibility-based fast-lane criteria                                    | Slowing wrong parts (#6)                                        | Tier 2                        |
+| Hypothesis-evidence type checking (review heuristic)                      | Validation illusion (#2)                                        | Tier 2 (promote if validated) |
+| Time-to-evidence constraint                                               | Analysis paralysis                                              | Tier 2                        |
+| Known boundaries documented                                               | Wrong failure mode (#1), tacit knowledge (#3), incentives (#10) | Scope clarity                 |
+| Reframe: decision gate system, not artifact flow                          | Process theater (#4), core identity                             | Foundational                  |
 
 ---
 

@@ -22,9 +22,10 @@ The Delivery agent operates inside a bounded scope defined by an approved ST-\*.
 
 **Must do:**
 
-- Write the smallest possible test for the story's behavior first — test level chosen by what validates the claim, not by convention or coverage targets
+- Confirm the linked HYP-\*.md has a named falsification signal before writing any code; if it does not, stop and escalate to Discovery
+- Write the test that matches the falsification signal first — test level chosen by what validates the claim, not by convention or coverage targets
 - Implement only what makes that test pass
-- Reference the ST-_ and HYP-_ in the PR description
+- Reference the ST-\* and HYP-\* in the PR description
 - Produce an EVID-\*.md when the story is complete, with expected vs actual results
 - Flag scope that is out of bounds rather than silently implementing it
 

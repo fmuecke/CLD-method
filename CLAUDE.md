@@ -9,8 +9,8 @@ See `AGENTS.md` for the full CLD behavioral contract — workflow, artifact type
 When given a task, identify which CLD role applies and operate within its constraints:
 
 - **Discovery** — vague request, new problem, hypothesis not yet written → see `docs/cld/agents/discovery.md`
-- **Delivery** — approved ST-*.md exists with a HYP-* link → see `docs/cld/agents/delivery.md`
-- **Review** — PR open with linked ST-*, HYP-*, EVID-* → see `docs/cld/agents/review.md`
+- **Delivery** — approved ST-\*.md exists with a HYP-\* link → see `docs/cld/agents/delivery.md`
+- **Review** — PR open with linked ST-\*, HYP-\*, EVID-\* → see `docs/cld/agents/review.md`
 
 If the role is unclear, ask before proceeding.
 
@@ -33,14 +33,14 @@ prompts/evals/                        — agent eval test cases
 
 ## Phase Status
 
-| Phase | Goal | Status |
-|-------|------|--------|
-| 0 | Repo skeleton + document templates | Done |
-| 1 | AGENTS.md + agent profiles on Copilot, Claude Code, Codex | Done |
-| 2 | GitHub issue/PR templates + fast-lane definition | Not started |
-| 3 | Gate checks: pre-commit hooks + CI | Not started |
-| 4 | Pilot with real feature work | Not started |
-| 5 | Agent evals across platforms | Not started |
+| Phase | Goal                                                      | Status      |
+| ----- | --------------------------------------------------------- | ----------- |
+| 0     | Repo skeleton + document templates                        | Done        |
+| 1     | AGENTS.md + agent profiles on Copilot, Claude Code, Codex | Done        |
+| 2     | GitHub issue/PR templates + fast-lane definition          | Not started |
+| 3     | Gate checks: pre-commit hooks + CI                        | Not started |
+| 4     | Pilot with real feature work                              | Not started |
+| 5     | Agent evals across platforms                              | Not started |
 
 ## Key Source Files
 

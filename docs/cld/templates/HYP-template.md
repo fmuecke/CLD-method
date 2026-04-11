@@ -6,7 +6,7 @@ Initiative: INIT-YYYY-NNN
 <!--
   HOW TO WRITE THIS HYPOTHESIS
 
-  Answer the five questions below in order. If you get stuck on any of them,
+  Answer these questions in order. If you get stuck on any of them,
   that's useful information — it means the hypothesis isn't ready yet.
 
   1. WHAT DO YOU BELIEVE IS TRUE?
@@ -22,15 +22,21 @@ Initiative: INIT-YYYY-NNN
      If this hypothesis is confirmed, what observable outcome improves?
      If nothing changes, it's not worth testing.
 
-  4. WHAT WOULD PROVE YOU WRONG?
+  4. WHAT WOULD FALSIFY THIS?
      This is the hardest and most important question.
      If nothing could prove you wrong, you don't have a hypothesis —
      you have an opinion. Rephrase until you can answer this.
+     Also ask: why is a positive result not trivial? "User clicked the button"
+     is not confirmation. What would a skeptic say?
 
-  5. WHAT'S THE CHEAPEST WAY TO FIND OUT?
-     This is the Smallest Possible Test. A 5-minute log query beats a
-     2-week prototype. An interview beats a survey. Pick the test that
-     gives you a decision with the least effort.
+  5. WHAT ELSE COULD EXPLAIN THE PROBLEM?
+     State the alternative hypothesis — what would a skeptic propose instead?
+     A real alternative, not a strawman.
+
+  6. WHAT'S THE CHEAPEST WAY TO FIND OUT?
+     State the test method AND what result constitutes confirmation vs rejection.
+     Then ask: how quickly can we get this signal? Prefer a worse test sooner
+     over a perfect test later.
 -->
 
 ## Belief
@@ -45,18 +51,34 @@ _We believe that ..._
 
 <!-- Observable outcome that improves. If nothing measurable changes, reconsider whether this is worth testing. -->
 
-## How This Could Be Wrong
+## Falsification Signal
 
-<!-- What evidence would falsify this? What would you need to see to abandon this belief?
-     If nothing could, you have an opinion, not a hypothesis. Rephrase until you can answer this. -->
+<!-- What result would make this hypothesis unlikely or wrong? Be explicit.
+     Vague falsification ("it doesn't work") is not a falsification signal. -->
+
+## Why a Positive Result Is Not Trivial
+
+<!-- What would a skeptic say about a confirming result? What alternative explanation
+     would still be consistent with the evidence? This prevents "user clicked = validated." -->
+
+## Alternative Hypothesis
+
+<!-- What else could explain the same problem? State a real competitor, not a strawman.
+     If you can't name one, you may be anchored. Keep looking. -->
 
 ## Smallest Possible Test
 
-<!-- The cheapest way to confirm or reject. State the method AND what result constitutes confirmation vs rejection. -->
+<!-- The cheapest way to confirm or reject. State the method AND what result constitutes
+     confirmation vs rejection. -->
 
 - Method:
 - Confirms if:
 - Rejects if:
+
+## Time to Evidence
+
+<!-- How quickly can we get signal? (hours / days / weeks)
+     Prefer a worse test sooner over a perfect test later. -->
 
 ## Confidence Before Testing
 
