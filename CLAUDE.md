@@ -45,6 +45,8 @@ prompts/evals/                        — agent eval test cases
 ## Key Source Files
 
 - `cld-project-plan.md` — Master plan with full phase breakdown and success criteria
-- `q2.md` — How AI amplifies development failures; refined CLD thesis
-- `q3.md` — Non-negotiable harness properties and cognitive load rationale
-- `q9-hypo-builder.md` — Hypothesis builder guidance; source for the 5-question preamble in HYP template
+- `docs/design-log/` — Archived Q&A design conversations; reference for rationale behind framework decisions
+  - `q2.md` — How AI amplifies development failures; refined CLD thesis
+  - `q3.md` — Non-negotiable harness properties and cognitive load rationale
+  - `q9-hypo-builder.md` — Hypothesis builder; source for the 5-question preamble in HYP template
+  - `q10-devils-advocate.md` — Devil's advocate analysis behind v2 hardening
