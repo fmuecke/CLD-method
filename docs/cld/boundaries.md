@@ -42,7 +42,7 @@ Operational changes where the verification is deterministic don't need a falsifi
 
 Example: "Update component X to version 1.2" is a fast-lane case. The only real question is whether it breaks something, and CI answers that deterministically. There is no hypothesis to write. Forcing one produces compliance paperwork: "falsification: tests fail" — which is trivially true of everything.
 
-If the update *is* motivated by an uncertain claim — "X 1.2's new caching should reduce our p95 latency" — that claim is worth a hypothesis. But the claim is the motivation, not the update itself.
+If the update _is_ motivated by an uncertain claim — "X 1.2's new caching should reduce our p95 latency" — that claim is worth a hypothesis. But the claim is the motivation, not the update itself.
 
 ## Revisit Schedule
 
