@@ -43,6 +43,28 @@
 - Teams report fewer "built the wrong thing" incidents.
 - The overhead feels lighter than the rework it prevents.
 
+## Core Principle: Smallest Possible Test
+
+> Every hypothesis implies its own test. Find the cheapest test that would confirm
+> or reject it. Implement against that test. The test result _is_ the evidence.
+
+This is the evidence mechanism of the closed loop. It applies at every level:
+
+- **Hypothesis** → "What would prove this wrong?" → that question defines the test.
+- **Story** → expected behavior (Given/When/Then) _is_ the test spec, not a separate artifact.
+- **Implementation** → write the one test that validates the behavior, then implement against it.
+- **Evidence** → test result = expected vs actual = confirmation or rejection.
+- **Review** → doesn't ask "is coverage high enough?" — asks "does the test actually
+  validate the hypothesis?"
+
+Test level (unit, integration, E2E, manual observation) is chosen by what's simplest
+to validate the claim — not by convention, not by coverage targets. A well-chosen
+integration test that proves the behavior beats 50 unit tests that prove implementation
+details.
+
+This kills the coverage illusion: you're not optimizing for lines covered,
+you're optimizing for **uncertainty reduced per test**.
+
 ## Risks & Constraints
 
 | Risk                                               | Mitigation                                                    |
@@ -68,6 +90,13 @@
   canonical format under `docs/cld/agents/`. Then project them into each platform's
   native format. This avoids drift and lets us compare agent behavior across platforms.
 
+- **Instruction file strategy:** `AGENTS.md` is the emerging open standard (Linux Foundation,
+  supported by Codex, Cursor, Copilot, Gemini CLI, and others). Use it as the single source
+  of truth for repo-wide CLD rules. Platform-specific files import from it:
+  - `CLAUDE.md` → `See @AGENTS.md for CLD rules.` (plus any Claude-specific overrides)
+  - `.github/copilot-instructions.md` → references `AGENTS.md` content
+  - Codex reads `AGENTS.md` natively
+
 ---
 
 # Build Plan
@@ -90,20 +119,23 @@
 - `docs/experiments/`
 - `docs/cld/agents/` — canonical role definitions (platform-neutral)
 
-0.3. Write minimal document templates (1 each):
+  0.3. Write minimal document templates (1 each):
 
 - Initiative (`INIT-*.md`)
-- Hypothesis (`HYP-*.md`)
-- Story (`ST-*.md`)
-- Evidence (`EVID-*.md`)
+- Hypothesis (`HYP-*.md`) — must include "smallest possible test" field:
+  what is the cheapest way to confirm or reject this?
+- Story (`ST-*.md`) — expected behavior = the test spec; includes chosen test level and why that level is sufficient
+- Evidence (`EVID-*.md`) — test result = expected vs actual = decision
 
-0.4. Write canonical agent role definitions (platform-neutral):
+  0.4. Write canonical agent role definitions (platform-neutral):
+  - `docs/cld/agents/discovery.md` — purpose, inputs, outputs, constraints.
+    Must ask: "what is the smallest possible test for this hypothesis?"
+  - `docs/cld/agents/delivery.md` — implements against the smallest possible test.
+    Test level chosen by what validates the behavior, not by convention.
+  - `docs/cld/agents/review.md` — checks whether the test actually validates the
+    hypothesis, not whether coverage is high enough.
 
-- `docs/cld/agents/discovery.md` — purpose, inputs, outputs, constraints
-- `docs/cld/agents/delivery.md`
-- `docs/cld/agents/review.md`
-
-0.5. Write one real example through the full chain:
+    0.5. Write one real example through the full chain:
 
 - Pick a small, realistic feature (e.g. a CLI tool, a small API endpoint).
 - Create INIT → HYP → ST → EVID files manually.
@@ -121,25 +153,35 @@
 
 ### Steps
 
-1.1. **GitHub Copilot projection:**
+1.1. **`AGENTS.md` at repo root** — single source of truth for CLD rules:
 
-- `.github/copilot-instructions.md` — repo-wide behavioral contract
-- `.github/agents/discovery.agent.md` — no production code, hypothesis focus
-- `.github/agents/delivery.agent.md` — story-scoped, tests-first
-- `.github/agents/review.agent.md` — traceability and gap detection
+- Repo-wide behavioral contract (no code without hypothesis, no scope invention, etc.)
+- Smallest Possible Test principle: every hypothesis and story must define the cheapest
+  test that would confirm or reject it. Test level chosen by what validates the claim.
+- References canonical role definitions in `docs/cld/agents/`
 
-1.2. **Claude Code projection:**
+  1.2. **GitHub Copilot projection:**
 
-- `CLAUDE.md` at repo root — repo-wide CLD rules
-- Role-specific sections or subdirectory overrides where applicable
-- Discovery/delivery/review separation via explicit prompt context
+- `.github/copilot-instructions.md` — imports/mirrors `AGENTS.md` content
+- `.github/agents/discovery.agent.md` — no production code, hypothesis focus,
+  must propose smallest possible test for each hypothesis
+- `.github/agents/delivery.agent.md` — story-scoped, implements against smallest
+  possible test before writing production code
+- `.github/agents/review.agent.md` — traceability, gap detection, validates that
+  test level matches the claim (not coverage theater)
 
-1.3. **OpenAI Codex projection:**
+  1.3. **Claude Code projection:**
 
-- `AGENTS.md` at repo root — behavioral contract
+- `CLAUDE.md` at repo root — imports `AGENTS.md` via `See @AGENTS.md for CLD rules.`
+- Claude-specific overrides only (e.g. subdirectory scoping, `@import` references)
+- Discovery/delivery/review separation via subagents or explicit prompt context
+
+  1.4. **OpenAI Codex projection:**
+
+- Reads `AGENTS.md` natively — no extra file needed for base rules
 - Sandbox policy: `workspace-write`, approval `on-request`, network off by default
 
-1.4. **Cross-platform test** against the Phase 0 example:
+  1.5. **Cross-platform test** against the Phase 0 example:
 
 - Feed the same initiative to discovery role on each platform.
 - Feed the same story to delivery role on each platform.
@@ -164,15 +206,15 @@
 
 - Problem statement, who experiences it, evidence, assumptions, success signal.
 
-2.2. Create PR template (`.github/pull_request_template.md`):
+  2.2. Create PR template (`.github/pull_request_template.md`):
 
 - Linked references (initiative, hypothesis, story).
 - What assumption does this address?
-- What was tested at each level?
+- What is the smallest possible test, and why is this test level sufficient?
 - What remains uncertain?
 - Post-release observation plan.
 
-2.3. Define fast-lane criteria:
+  2.3. Define fast-lane criteria:
 
 - Which change types (bug fixes, refactors, deps) can skip full discovery?
 - Even fast-lane requires: expected effect, test evidence, rollback thought.
@@ -184,31 +226,36 @@
 
 ---
 
-## Phase 3 — CI Gate Checks (Week 3–4)
+## Phase 3 — Gate Checks: Pre-commit + CI (Week 3–4)
 
-**Goal:** Automated gates that fail PRs missing required traceability.
+**Goal:** Two-layer enforcement — fast local feedback via pre-commit hooks,
+non-bypassable gates via CI.
+
+### Why two layers
+
+Pre-commit hooks catch mistakes before you push (fast, immediate feedback).
+CI catches everything else server-side and cannot be skipped
+(`git commit --no-verify` bypasses hooks, nothing bypasses CI).
 
 ### Steps
 
-3.1. Write `scripts/check-pr-links.sh`:
+3.1. **Pre-commit hooks** (fast local checks via `scripts/`):
 
-- PR body must reference at least one `ST-*`.
+- `scripts/check-pr-links.sh` — commit message or PR body references at least one `ST-*`.
+- `scripts/check-pr-template.sh` — required sections not empty/placeholder.
+- Install via a simple setup script or tool like `pre-commit` / `husky`.
 
-3.2. Write `scripts/check-story-links.sh`:
+  3.2. **CI gate checks** (full traceability, needs repo context):
 
-- Referenced story file must contain a `HYP-*` link.
+- `scripts/check-story-links.sh` — referenced story file must contain a `HYP-*` link.
+- `scripts/check-test-evidence.sh` — PR must include at least one test change that
+  maps to the hypothesis or story behavior (or explicit justification for why no
+  new test is needed). Validates presence, not coverage metrics.
+- Cross-file validation that pre-commit hooks cannot do locally.
 
-3.3. Write `scripts/check-pr-template.sh`:
+  3.3. Create `.github/workflows/cld-gate-check.yml` running the full script suite.
 
-- Required PR sections must not be empty/placeholder.
-
-3.4. Write `scripts/check-test-evidence.sh`:
-
-- Changed source files should have corresponding test changes (or explicit justification).
-
-3.5. Create `.github/workflows/cld-gate-check.yml` tying them together.
-
-3.6. Run against 3–5 real PRs to calibrate strictness.
+  3.4. Run against 3–5 real PRs to calibrate strictness.
 
 - Too strict → teams route around it.
 - Too loose → no behavior change.
@@ -231,28 +278,27 @@
 
 - Issue → Initiative → Hypothesis → Story → Implementation → PR → Review → Evidence
 
-4.3. Rotate agent platforms across slices:
+  4.3. Rotate agent platforms across slices:
 
 - Slice A: GitHub Copilot agents
 - Slice B: Claude Code
 - Slice C: Codex
 - This produces comparable data on how each platform responds to the same constraints.
 
-4.4. Track friction points per platform:
+  4.4. Track friction points per platform:
+  - Where do agents try to skip steps?
+  - Which platform respects constraints best out of the box?
+  - Which templates feel too heavy?
+  - Which CI checks produce false positives?
 
-- Where do agents try to skip steps?
-- Which platform respects constraints best out of the box?
-- Which templates feel too heavy?
-- Which CI checks produce false positives?
+    4.5. Conduct a retrospective specifically on CLD:
 
-4.5. Conduct a retrospective specifically on CLD:
+  - Did it change what got built?
+  - Did it surface assumptions that would have been missed?
+  - What's the actual overhead vs perceived overhead?
+  - Which platform is the best fit for which role?
 
-- Did it change what got built?
-- Did it surface assumptions that would have been missed?
-- What's the actual overhead vs perceived overhead?
-- Which platform is the best fit for which role?
-
-4.6. Refine templates, agent instructions, and CI checks based on findings.
+    4.6. Refine templates, agent instructions, and CI checks based on findings.
 
 ### Exit criteria
 
@@ -271,17 +317,20 @@
 5.1. Create `prompts/evals/` with test cases for each agent role:
 
 - Discovery: does it challenge vague requests? Does it produce alternatives?
-- Delivery: does it stay within scope? Does it write tests first?
-- Review: does it detect missing traceability?
+  Does it propose a smallest possible test for each hypothesis?
+- Delivery: does it stay within scope? Does it write the smallest possible test
+  before production code? Does it choose the right test level for the claim?
+- Review: does it detect missing traceability? Does it flag coverage theater
+  (e.g. 50 unit tests that don't validate the actual hypothesis)?
 
-5.2. Build a small eval corpus from Phase 4 real examples (across all platforms).
+  5.2. Build a small eval corpus from Phase 4 real examples (across all platforms).
 
-5.3. Run evals per platform — same inputs, compare outputs:
+  5.3. Run evals per platform — same inputs, compare outputs:
 
 - GitHub Models `gh models eval` for Copilot
 - Script-based for Claude Code and Codex
 
-5.4. Use eval results to tune agent prompts per platform.
+  5.4. Use eval results to tune agent prompts per platform.
 
 ### Exit criteria
 
