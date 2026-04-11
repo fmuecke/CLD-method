@@ -1,0 +1,58 @@
+name: CLD Gate Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  hard-gates:
+    name: Hard Gates
+    runs-on: ubuntu-latest
+    env:
+      PR_BODY: ${{ github.event.pull_request.body }}
+      REPO_ROOT: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: ST-* reference present
+        run: bash scripts/check-pr-links.sh
+
+      - name: PR template sections filled in
+        run: bash scripts/check-pr-template.sh
+
+      - name: Story files link to HYP-*
+        run: bash scripts/check-story-links.sh
+
+      - name: Hypotheses have falsification signal and alternative
+        run: bash scripts/check-falsification.sh
+
+      - name: Test evidence present
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: bash scripts/check-test-evidence.sh
+
+  soft-checks:
+    name: Anti-Gaming Flags (warnings only)
+    runs-on: ubuntu-latest
+    env:
+      PR_BODY: ${{ github.event.pull_request.body }}
+      REPO_ROOT: .
+    # Never block the PR — soft checks produce annotations only
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: Anti-gaming heuristics
+        run: bash scripts/check-anti-gaming.sh

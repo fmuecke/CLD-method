@@ -38,7 +38,7 @@ prompts/evals/                        — agent eval test cases
 | 0     | Repo skeleton + document templates                        | Done        |
 | 1     | AGENTS.md + agent profiles on Copilot, Claude Code, Codex | Done        |
 | 2     | GitHub issue/PR templates + fast-lane definition          | Done        |
-| 3     | Gate checks: pre-commit hooks + CI                        | Not started |
+| 3     | Gate checks: pre-commit hooks + CI                        | Done        |
 | 4     | Pilot with real feature work                              | Not started |
 | 5     | Agent evals across platforms                              | Not started |
 
