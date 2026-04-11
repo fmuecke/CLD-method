@@ -7,12 +7,12 @@ GitHub Copilot supports repository-wide and path-specific custom instructions, a
 
 So the right move is not to invent a huge platform. It is to define a **repository-native harness** that sits on top of:
 
-* GitHub repo structure
-* custom instructions / agents
-* issues / PRs
-* CI checks
-* evals
-* agent sandboxing
+- GitHub repo structure
+- custom instructions / agents
+- issues / PRs
+- CI checks
+- evals
+- agent sandboxing
 
 ## The core design principle
 
@@ -76,12 +76,12 @@ tests/
 
 It separates six things teams usually mix together:
 
-* **initiative** = larger problem/opportunity
-* **hypothesis** = explicit assumption to test
-* **story** = implementation slice
-* **decision** = architectural or product commitment
-* **experiment** = how uncertainty is reduced
-* **evidence** = what actually happened
+- **initiative** = larger problem/opportunity
+- **hypothesis** = explicit assumption to test
+- **story** = implementation slice
+- **decision** = architectural or product commitment
+- **experiment** = how uncertainty is reduced
+- **evidence** = what actually happened
 
 That is the most important modeling choice.
 If you skip it, your workflow collapses back into “ticket = truth”.
@@ -98,24 +98,30 @@ Keep them small. If they are bloated, people and agents will route around them.
 
 ```md
 # Initiative
+
 ID: INIT-2026-001
 Title: Improve first-time user onboarding
 Status: Discovery | Delivery | Validating | Done
 
 ## Problem
+
 What user or business problem are we addressing?
 
 ## Target outcome
+
 What observable change would indicate success?
 
 ## Non-goals
+
 What are we explicitly not solving?
 
 ## Open assumptions
+
 - HYP-2026-014
 - HYP-2026-015
 
 ## Linked stories
+
 - ST-2026-115
 ```
 
@@ -125,26 +131,33 @@ What are we explicitly not solving?
 
 ```md
 # Hypothesis
+
 ID: HYP-2026-014
 Initiative: INIT-2026-001
 Status: Open | In Test | Confirmed | Rejected
 
 ## Assumption
+
 We believe that ...
 
 ## Why we think this
+
 Signals, anecdotes, data, stakeholder input.
 
 ## How this could be wrong
+
 What evidence would falsify it?
 
 ## Validation plan
+
 Interview, prototype, experiment, telemetry, support data, etc.
 
 ## Success signal
+
 What measurable observation would support this?
 
 ## Result
+
 Confirmed / Rejected / Inconclusive
 ```
 
@@ -154,28 +167,34 @@ Confirmed / Rejected / Inconclusive
 
 ```md
 # Story
+
 ID: ST-2026-115
 Initiative: INIT-2026-001
 Related hypothesis: HYP-2026-014
 
 ## Slice
+
 What thin vertical slice is implemented?
 
 ## Expected behavior
+
 - Given ...
 - When ...
 - Then ...
 
 ## Test levels
+
 - Unit:
 - Integration:
 - End-to-end:
 - Production observation:
 
 ## Constraints
+
 Security, performance, UX, compatibility.
 
 ## Evidence required before merge
+
 - tests pass
 - examples covered
 - telemetry added
@@ -187,13 +206,18 @@ Security, performance, UX, compatibility.
 
 ```md
 # Evidence
+
 ID: EVID-2026-021
 Related to: ST-2026-115 / HYP-2026-014
 
 ## What was done
+
 ## What was observed
+
 ## Expected vs actual
+
 ## Remaining uncertainty
+
 ## Recommended next decision
 ```
 
@@ -209,22 +233,22 @@ Use three constrained roles.
 
 Purpose:
 
-* challenge assumptions
-* rewrite vague requests into hypotheses
-* identify missing evidence
-* generate alternatives, not code
+- challenge assumptions
+- rewrite vague requests into hypotheses
+- identify missing evidence
+- generate alternatives, not code
 
 Inputs:
 
-* initiative
-* user request
-* existing hypotheses
+- initiative
+- user request
+- existing hypotheses
 
 Outputs:
 
-* hypothesis file
-* experiment suggestion
-* candidate story slices
+- hypothesis file
+- experiment suggestion
+- candidate story slices
 
 It should be explicitly forbidden from writing production code.
 
@@ -232,24 +256,24 @@ It should be explicitly forbidden from writing production code.
 
 Purpose:
 
-* implement only from approved story slices
-* write tests first or at least examples first
-* update evidence stubs
-* respect repo instructions
+- implement only from approved story slices
+- write tests first or at least examples first
+- update evidence stubs
+- respect repo instructions
 
 Inputs:
 
-* story
-* approved decision
-* constraints
-* test expectations
+- story
+- approved decision
+- constraints
+- test expectations
 
 Outputs:
 
-* code
-* tests
-* telemetry hooks
-* PR draft notes
+- code
+- tests
+- telemetry hooks
+- PR draft notes
 
 It should be forbidden from inventing scope.
 
@@ -257,23 +281,22 @@ It should be forbidden from inventing scope.
 
 Purpose:
 
-* inspect whether the change actually closes the intended hypothesis
-* check missing tests, overreach, mismatched levels of testing
-* detect assumption laundering
+- inspect whether the change actually closes the intended hypothesis
+- check missing tests, overreach, mismatched levels of testing
+- detect assumption laundering
 
 Inputs:
 
-* PR diff
-* linked story / hypothesis / initiative
+- PR diff
+- linked story / hypothesis / initiative
 
 Outputs:
 
-* structured review:
-
-  * requirement gap
-  * test gap
-  * risk
-  * missing evidence
+- structured review:
+  - requirement gap
+  - test gap
+  - risk
+  - missing evidence
 
 This separation maps well to GitHub custom agents and repo instructions. GitHub’s current custom-agent setup supports agent-specific prompts, tool access, and model selection in `.github/agents/*.agent.md`. ([GitHub Docs][2])
 
@@ -287,38 +310,44 @@ This is the actual harness loop.
 
 Trigger:
 
-* new issue
-* product request
-* support signal
-* bug trend
+- new issue
+- product request
+- support signal
+- bug trend
 
 Required artifact:
 
-* initiative or hypothesis file
+- initiative or hypothesis file
 
 Rule:
 
-* no story may be created unless at least one open assumption is explicit
+- no story may be created unless at least one open assumption is explicit
 
 ### Example GitHub issue template
 
 ```md
 ## Problem statement
+
 What problem do we believe exists?
 
 ## Who experiences it?
+
 User, operator, internal team, system.
 
 ## Evidence
+
 What data, examples, or anecdotes support this?
 
 ## Assumptions
+
 What are we not sure about?
 
 ## Success signal
+
 What would improve if we are right?
 
 ## Proposed next step
+
 Research / experiment / slice / do nothing
 ```
 
@@ -330,13 +359,13 @@ This is where your “don’t jump to solutions” forcing function lives.
 
 Discovery agent produces:
 
-* 1–3 solution options
-* tradeoffs
-* smallest viable slice
+- 1–3 solution options
+- tradeoffs
+- smallest viable slice
 
 Rule:
 
-* no coding until at least one alternative was considered
+- no coding until at least one alternative was considered
 
 That rule matters because agents lock into first-plausible-solution mode very easily.
 
@@ -346,15 +375,15 @@ That rule matters because agents lock into first-plausible-solution mode very ea
 
 Before coding, a story file must exist with:
 
-* linked hypothesis
-* examples
-* intended test levels
-* required evidence
+- linked hypothesis
+- examples
+- intended test levels
+- required evidence
 
 Rule:
 
-* no PR without linked `ST-*`
-* no `ST-*` without linked `HYP-*`
+- no PR without linked `ST-*`
+- no `ST-*` without linked `HYP-*`
 
 This is cheap to enforce in CI via filename/reference checks.
 
@@ -366,9 +395,9 @@ Delivery agent works in a bounded sandbox.
 
 For Codex, the practical default is:
 
-* `workspace-write`
-* approval policy `on-request`
-* network off unless clearly needed
+- `workspace-write`
+- approval policy `on-request`
+- network off unless clearly needed
 
 That matches Codex’s lower-risk default posture and avoids letting the agent roam freely. ([OpenAI Entwickler][3])
 
@@ -390,6 +419,7 @@ PR template should require:
 
 ```md
 ## Linked artifacts
+
 - Initiative:
 - Hypothesis:
 - Story:
@@ -400,6 +430,7 @@ PR template should require:
 ## What examples prove expected behavior?
 
 ## What was tested at each level?
+
 - Unit
 - Integration
 - E2E
@@ -420,11 +451,11 @@ It becomes “does this change trace back to a valid uncertainty-reduction step?
 
 CI should fail if:
 
-* no linked story
-* no linked hypothesis
-* no executable examples/tests
-* no evidence section
-* no post-release observation plan for user-facing changes
+- no linked story
+- no linked hypothesis
+- no executable examples/tests
+- no evidence section
+- no post-release observation plan for user-facing changes
 
 This is the core forcing function.
 
@@ -434,14 +465,13 @@ This is the core forcing function.
 
 After merge or release:
 
-* evidence file updated
-* hypothesis status updated
-* next step chosen:
-
-  * confirm
-  * reject
-  * refine
-  * open new hypothesis
+- evidence file updated
+- hypothesis status updated
+- next step chosen:
+  - confirm
+  - reject
+  - refine
+  - open new hypothesis
 
 No learning artifact, no closure.
 
@@ -463,6 +493,7 @@ Example:
 This repository uses a hypothesis-driven workflow.
 
 ## General rules
+
 - Do not implement from vague requests.
 - Do not treat a story as truth; trace it back to a linked hypothesis.
 - Prefer the smallest vertical slice that reduces uncertainty.
@@ -470,7 +501,9 @@ This repository uses a hypothesis-driven workflow.
 - Surface ambiguities explicitly instead of silently filling gaps.
 
 ## Before coding
+
 You must identify:
+
 - linked initiative
 - linked hypothesis
 - linked story
@@ -480,14 +513,18 @@ You must identify:
 If any are missing, stop and ask for them or propose a draft artifact.
 
 ## Testing
+
 Do not rely only on end-to-end tests.
 Choose tests deliberately:
+
 - unit for local logic
 - integration for contracts and boundaries
 - end-to-end for critical journeys only
 
 ## Evidence
+
 For user-facing or risky changes, include:
+
 - how success will be observed after release
 - telemetry or logs if needed
 - expected vs actual summary in PR notes
@@ -512,6 +549,7 @@ You are the discovery agent.
 You do not write production code.
 
 Your job is to:
+
 1. identify the actual problem being claimed
 2. separate facts from assumptions
 3. create or update initiative and hypothesis files
@@ -537,6 +575,7 @@ You are the delivery agent.
 You may only implement from an existing story file linked to a hypothesis.
 
 Rules:
+
 - do not invent scope
 - derive behavior examples first
 - prefer the smallest possible change
@@ -558,6 +597,7 @@ model: gpt-5
 You are the review agent.
 
 Review for:
+
 - missing hypothesis linkage
 - assumption laundering
 - overreach beyond story
@@ -566,6 +606,7 @@ Review for:
 - mismatch between stated problem and implemented change
 
 Output sections:
+
 1. Traceability
 2. Test strategy
 3. Remaining risk
@@ -582,11 +623,11 @@ A lightweight GitHub Actions workflow is enough for v1.
 
 Checks:
 
-* PR references `ST-*`
-* story file references `HYP-*`
-* changed code has corresponding tests, if applicable
-* PR template sections completed
-* hypothesis/evidence docs updated for designated change types
+- PR references `ST-*`
+- story file references `HYP-*`
+- changed code has corresponding tests, if applicable
+- PR template sections completed
+- hypothesis/evidence docs updated for designated change types
 
 Pseudo-logic:
 
@@ -632,19 +673,16 @@ GitHub Models supports storing prompts in-repo and evaluating prompts/models, in
 ## What to evaluate
 
 1. **Discovery quality**
-
-   * Did the agent identify assumptions?
-   * Did it separate problem from solution?
+   - Did the agent identify assumptions?
+   - Did it separate problem from solution?
 
 2. **Delivery quality**
-
-   * Did it honor scope boundaries?
-   * Did it add correct test levels?
+   - Did it honor scope boundaries?
+   - Did it add correct test levels?
 
 3. **Review quality**
-
-   * Did it detect missing traceability?
-   * Did it spot overreliance on E2E?
+   - Did it detect missing traceability?
+   - Did it spot overreliance on E2E?
 
 ## Example eval cases
 
@@ -684,43 +722,43 @@ This is the minimal human workflow:
 
 Creates or updates:
 
-* initiative
-* problem statement
-* success signal
+- initiative
+- problem statement
+- success signal
 
 ## Discovery agent + human
 
 Refines:
 
-* hypotheses
-* alternatives
-* experiments
-* smallest slices
+- hypotheses
+- alternatives
+- experiments
+- smallest slices
 
 ## Delivery agent + developer
 
 Creates:
 
-* code
-* tests
-* telemetry
-* PR notes
+- code
+- tests
+- telemetry
+- PR notes
 
 ## Review agent + reviewer
 
 Checks:
 
-* traceability
-* test strategy
-* residual risk
+- traceability
+- test strategy
+- residual risk
 
 ## Team
 
 Closes the loop by updating:
 
-* evidence
-* hypothesis status
-* next decision
+- evidence
+- hypothesis status
+- next decision
 
 That is lightweight enough to run.
 
@@ -738,15 +776,15 @@ If it feels like compliance paperwork, it will be bypassed.
 
 Use a fast lane for:
 
-* obvious bug fixes
-* internal refactors
-* dependency updates
+- obvious bug fixes
+- internal refactors
+- dependency updates
 
 But even there, still require:
 
-* expected effect
-* test evidence
-* rollback thought
+- expected effect
+- test evidence
+- rollback thought
 
 ## 3. Do not let the agent write from issue text alone
 
@@ -792,11 +830,11 @@ That is your harness.
 
 If you want, next I can turn this into actual ready-to-commit files for a GitHub repo:
 
-* `copilot-instructions.md`
-* three `.agent.md` files
-* issue template
-* PR template
-* `harness-check.yml` skeleton
+- `copilot-instructions.md`
+- three `.agent.md` files
+- issue template
+- PR template
+- `harness-check.yml` skeleton
 
 [1]: https://docs.github.com/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot "Adding repository custom instructions for GitHub Copilot - GitHub Docs"
 [2]: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents "Creating custom agents for Copilot cloud agent - GitHub Docs"
