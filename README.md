@@ -51,6 +51,13 @@ bash scripts/install-hooks.sh
 
 ## Fast-lane
 
+**The default is fast-lane.** Full CLD is the exception that earns its way in. Triage by reversibility × blast radius:
+
+| | Small blast radius | Large blast radius |
+|---|---|---|
+| **Easy to undo** | Fast-lane | Fast-lane + extra care |
+| **Hard to undo** | Fast-lane + extra care | Full CLD |
+
 Reversible, low-risk changes (dependency updates, bug fixes, refactors) skip full discovery. Still required: expected effect, test evidence, rollback consideration. Mark the PR with `[fast-lane]`.
 
 Operational changes where verification is deterministic — "does it break?" — don't generate hypotheses. The test suite is already the falsification mechanism.

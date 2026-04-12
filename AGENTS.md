@@ -84,11 +84,18 @@ Full role definitions in `docs/cld/agents/`. Summary:
 
 ## Fast-lane
 
-Operational changes where the verification is deterministic don't generate hypotheses — the test suite is already the falsification mechanism. Full CLD applies when there is genuine uncertainty about an assumption. Fast-lane applies when the risk is breakage, not wrong direction.
+**The default is fast-lane. Full CLD is the exception that earns its way in.**
 
-**Use fast-lane for:** bug fixes with a clear root cause, refactors with no behavior change, dependency updates, config changes.
+Triage by reversibility × blast radius:
 
-**Use full CLD for:** anything where a wrong assumption could cause you to build the wrong thing — new behavior, new user-facing flows, architectural choices with competing options.
+| | Small blast radius | Large blast radius |
+|---|---|---|
+| **Easy to undo** | Fast-lane | Fast-lane + extra care |
+| **Hard to undo** | Fast-lane + extra care | Full CLD |
+
+**Use fast-lane for:** bug fixes, refactors, dependency updates, config changes — anything where the verification is deterministic. The test suite is already the falsification mechanism.
+
+**Use full CLD for:** data models, public APIs, cross-feature integrations, security boundaries — anything where a wrong assumption is expensive to reverse or has wide impact.
 
 Fast-lane still requires:
 
@@ -99,6 +106,12 @@ Fast-lane still requires:
 Mark PR body with `[fast-lane]` and a one-line justification.
 
 **Example:** `[fast-lane]` Bump X from 1.1 to 1.2 for security patch CVE-XXXX. Expected: CI green, no breaking changes per changelog. Rollback: revert to 1.1.
+
+## Backward Check
+
+The loop closes in both directions. Forward: did we think enough to start? Backward: did what we shipped earn its keep?
+
+Fast-lane features should be periodically reviewed for actual value vs. maintenance cost. A feature surface that grows monotonically — because nothing ever gets killed — is a sign the backward check is missing.
 
 ## Gate Checks (Phase 3)
 

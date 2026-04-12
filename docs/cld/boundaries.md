@@ -35,7 +35,14 @@ and the benefit is theoretical.
 
 ## What Does Not Need a Hypothesis
 
-Operational changes where the verification is deterministic don't need a falsification signal — the test suite is already the falsification mechanism. The right question is: is there genuine uncertainty about an assumption, or is the risk simply breakage?
+Triage by reversibility × blast radius. The default is fast-lane — full CLD earns its way in when a wrong assumption would be expensive to undo or has wide impact.
+
+| | Small blast radius | Large blast radius |
+|---|---|---|
+| **Easy to undo** | Fast-lane | Fast-lane + extra care |
+| **Hard to undo** | Fast-lane + extra care | Full CLD |
+
+Operational changes where verification is deterministic don't need a falsification signal — the test suite is already the falsification mechanism. The right question is: is there genuine uncertainty about an assumption, or is the risk simply breakage?
 
 - **Needs full CLD:** new behavior, user-facing flows, architectural choices with competing options — wrong assumption → wrong thing built
 - **Needs only fast-lane:** version bumps, bug fixes with clear root cause, config changes, refactors with no behavior change — wrong execution → tests catch it

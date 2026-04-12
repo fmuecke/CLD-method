@@ -25,17 +25,33 @@ not a documentation workflow.
    completion, not assumption validation. "Correct code for the wrong problem" is now the
    dominant failure mode.
 
-3. **The gap is clear and unfilled.**
+3. **"Just ship it" works — until it doesn't.**
+   When AI makes building cheap, an evolutionary approach becomes tempting: build
+   more, ship fast, let the market decide what survives. And it genuinely works —
+   teams _are_ successful this way, often enough to reinforce the pattern. The problem
+   is that the feedback loop is open on the back end. Features ship, but nobody
+   tracks which bets paid off. Nothing gets killed because killing feels riskier than
+   keeping. The result is a feature surface that grows monotonically: cross-feature
+   dependencies multiply, maintainability cost compounds, and the team slowly loses
+   the speed advantage that justified skipping the thinking in the first place.
+
+   CLD doesn't argue against building fast. It argues that _learning from what you
+   built_ must be as systematic as building it. The closed loop closes in both
+   directions: forward (did we think enough to start?) and backward (did what we
+   shipped earn its keep?). Without the backward check, evolutionary delivery
+   produces feature swamps, not survival of the fittest.
+
+4. **The gap is clear and unfilled.**
    Existing tools cover fragments — guardrails enforce format, agent frameworks manage execution,
    CI validates code quality — but nothing connects them around _uncertainty management_.
    No tool today prevents skipping the thinking.
 
-4. **The building blocks exist.**
+5. **The building blocks exist.**
    GitHub custom instructions, agent profiles (`.agent.md`), CI workflows, and sandbox-capable
    agents (Copilot, Codex, Claude Code) provide enough infrastructure. This is an integration
    and constraint problem, not a platform problem.
 
-5. **It's testable with one repo and one team.**
+6. **It's testable with one repo and one team.**
    CLD is repo-native by design. No new platform needed. Success or failure becomes
    visible within weeks, not months.
 
@@ -44,6 +60,7 @@ not a documentation workflow.
 - Assumptions are explicit and traceable from issue to merge.
 - Agents cannot bypass hypothesis → story → evidence flow.
 - Teams report fewer "built the wrong thing" incidents.
+- Features that shipped are periodically reviewed for actual value vs. maintenance cost.
 - The overhead feels lighter than the rework it prevents.
 
 ## Core Principle: Every Step Reduces Uncertainty
@@ -312,13 +329,20 @@ the pilot.
   - Reversal trigger: what would make us revisit this?
 - Post-release observation plan.
 
-  2.4. Define fast-lane criteria based on reversibility:
+  2.4. Define fast-lane criteria:
 
-- **Reversible + low-risk** (bug fixes, refactors, deps, config):
-  fast-lane — expected effect, test evidence, rollback thought. Skip full discovery.
-- **Irreversible or high-impact** (new features, API contracts, data model changes, public interfaces):
-  full CLD — falsification signal, alternative hypothesis, confidence level, reversal trigger.
-- Even fast-lane requires answering: "what could go wrong and how would we know?"
+- **Decision anchor: reversibility × blast radius.**
+  Not every change deserves the full closed loop. The triage rule:
+  - _Easy to undo + small blast radius_ → fast-lane (evolutionary track).
+    - fast-lane — expected effect, test evidence, rollback thought. Skip full discovery.
+    - Build it, ship it, measure whether it earns its keep.
+  - _Hard to undo + large blast radius_ → full CLD loop.
+    - full CLD — falsification signal, alternative hypothesis, confidence level, reversal trigger.
+    - Data models, public APIs, cross-feature integrations, security boundaries.
+  - The default is fast-lane. CLD discipline is the exception that earns its
+    way in — justified by the cost of getting it wrong, not by process dogma.
+- Which change types (bug fixes, refactors, deps) typically qualify for fast-lane?
+- Even fast-lane requires: expected effect, test evidence, rollback thought. e.g. "what could go wrong and how would we know?"
 
 ### Exit criteria
 

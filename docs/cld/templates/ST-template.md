@@ -24,8 +24,10 @@ _What is the cheapest test that validates this behavior? Choose the test level b
 
 ## Decision Type
 
-- [ ] **Reversible** — low cost to undo; fast-lane CI checks apply
-- [ ] **Irreversible / high-impact** — API contract, data model, public interface, or user-facing change; full CLD required: confidence level and reversal trigger must appear in the PR
+Triage by reversibility × blast radius (default: fast-lane):
+
+- [ ] **Fast-lane** — easy to undo or small blast radius; CI checks are the falsification mechanism
+- [ ] **Full CLD** — hard to undo **and** large blast radius (API contract, data model, public interface, security boundary); confidence level and reversal trigger must appear in the PR
 
 ## Scope Boundary
 
