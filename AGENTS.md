@@ -88,10 +88,10 @@ Full role definitions in `docs/cld/agents/`. Summary:
 
 Triage by reversibility × blast radius:
 
-| | Small blast radius | Large blast radius |
-|---|---|---|
-| **Easy to undo** | Fast-lane | Fast-lane + extra care |
-| **Hard to undo** | Fast-lane + extra care | Full CLD |
+|                  | Small blast radius     | Large blast radius     |
+| ---------------- | ---------------------- | ---------------------- |
+| **Easy to undo** | Fast-lane              | Fast-lane + extra care |
+| **Hard to undo** | Fast-lane + extra care | Full CLD               |
 
 **Use fast-lane for:** bug fixes, refactors, dependency updates, config changes — anything where the verification is deterministic. The test suite is already the falsification mechanism.
 

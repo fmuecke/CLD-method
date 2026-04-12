@@ -37,10 +37,10 @@ and the benefit is theoretical.
 
 Triage by reversibility × blast radius. The default is fast-lane — full CLD earns its way in when a wrong assumption would be expensive to undo or has wide impact.
 
-| | Small blast radius | Large blast radius |
-|---|---|---|
-| **Easy to undo** | Fast-lane | Fast-lane + extra care |
-| **Hard to undo** | Fast-lane + extra care | Full CLD |
+|                  | Small blast radius     | Large blast radius     |
+| ---------------- | ---------------------- | ---------------------- |
+| **Easy to undo** | Fast-lane              | Fast-lane + extra care |
+| **Hard to undo** | Fast-lane + extra care | Full CLD               |
 
 Operational changes where verification is deterministic don't need a falsification signal — the test suite is already the falsification mechanism. The right question is: is there genuine uncertainty about an assumption, or is the risk simply breakage?
 

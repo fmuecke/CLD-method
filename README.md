@@ -16,13 +16,13 @@ Every piece of work follows a traceable chain:
 Issue → INIT → HYP → ST → IMPL → PR → Review → EVID
 ```
 
-| Artifact | What it is |
-|----------|-----------|
-| `INIT-*` | The problem — described as pain, not as a solution |
+| Artifact | What it is                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------------------------- |
+| `INIT-*` | The problem — described as pain, not as a solution                                                            |
 | `HYP-*`  | A falsifiable assumption with a falsification signal, an alternative hypothesis, and a smallest possible test |
-| `ST-*`   | A bounded implementation slice — the expected behavior *is* the test spec |
-| `IMPL`   | The code change — must reference a `ST-*` |
-| `EVID-*` | What actually happened — expected vs actual, ending with a decision |
+| `ST-*`   | A bounded implementation slice — the expected behavior _is_ the test spec                                     |
+| `IMPL`   | The code change — must reference a `ST-*`                                                                     |
+| `EVID-*` | What actually happened — expected vs actual, ending with a decision                                           |
 
 No step can be bypassed without explicit justification. The chain is the constraint.
 
@@ -53,10 +53,10 @@ bash scripts/install-hooks.sh
 
 **The default is fast-lane.** Full CLD is the exception that earns its way in. Triage by reversibility × blast radius:
 
-| | Small blast radius | Large blast radius |
-|---|---|---|
-| **Easy to undo** | Fast-lane | Fast-lane + extra care |
-| **Hard to undo** | Fast-lane + extra care | Full CLD |
+|                  | Small blast radius     | Large blast radius     |
+| ---------------- | ---------------------- | ---------------------- |
+| **Easy to undo** | Fast-lane              | Fast-lane + extra care |
+| **Hard to undo** | Fast-lane + extra care | Full CLD               |
 
 Reversible, low-risk changes (dependency updates, bug fixes, refactors) skip full discovery. Still required: expected effect, test evidence, rollback consideration. Mark the PR with `[fast-lane]`.
 
@@ -102,4 +102,4 @@ CLD targets assumption-driven failure. It does not claim to solve integration co
 
 ---
 
-*Author: Florian Mücke*
+_Author: Florian Mücke_
