@@ -145,22 +145,35 @@ the pilot.
 - **Repo:** Fresh greenfield repo for evaluation — no legacy constraints.
 - **Agent platforms (all in scope):**
 
-| Platform       | Instruction mechanism                                           | Role separation                            |
-| -------------- | --------------------------------------------------------------- | ------------------------------------------ |
-| GitHub Copilot | `.github/copilot-instructions.md` + `.github/agents/*.agent.md` | Native agent profiles                      |
-| Claude Code    | `CLAUDE.md` (repo root + subdirectory overrides)                | Role via prompt sections or slash commands |
-| OpenAI Codex   | `AGENTS.md` + sandbox policies                                  | Task-scoped agents                         |
+| Platform       | Instruction mechanism                                                         | Role separation                                            |
+| -------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| GitHub Copilot | `.agents/skills/` (also accepts `.github/skills`, `.claude/skills`)           | Skills; thin `.github/agents/*.agent.md` wrappers optional |
+| Claude Code    | `.agents/skills/` or `.claude/skills/`; `CLAUDE.md` for Claude-only overrides | Skills + slash commands                                    |
+| OpenAI Codex   | `.agents/skills/` (scanned from CWD up to repo root); `AGENTS.md`             | Skills; task-scoped agents                                 |
 
-- **Design principle:** Author role definitions (discovery, delivery, review) once in a
-  canonical format under `docs/cld/agents/`. Then project them into each platform's
-  native format. This avoids drift and lets us compare agent behavior across platforms.
+- **Design principle:** Author role definitions (discovery, delivery, review) once as
+  `SKILL.md` files under `.agents/skills/`. `AGENTS.md` is the lightweight behavioral
+  contract (repo-wide rules, what every platform reads). Platform-specific files are thin
+  wrappers only — they reference the skills, not duplicate them. This is one authoring
+  location, three platforms.
 
-- **Instruction file strategy:** `AGENTS.md` is the emerging open standard (Linux Foundation,
-  supported by Codex, Cursor, Copilot, Gemini CLI, and others). Use it as the single source
-  of truth for repo-wide CLD rules. Platform-specific files import from it:
-  - `CLAUDE.md` → `See @AGENTS.md for CLD rules.` (plus any Claude-specific overrides)
-  - `.github/copilot-instructions.md` → references `AGENTS.md` content
-  - Codex reads `AGENTS.md` natively
+  ```
+  AGENTS.md                    → repo-wide contract (all platforms read this)
+  .agents/skills/              → cross-platform skill location
+    cld-discovery/SKILL.md     → discovery role + workflow
+    cld-delivery/SKILL.md      → delivery role + workflow
+    cld-review/SKILL.md        → review role + anti-gaming heuristics
+  ```
+
+  Skills can bundle gate-check script references, templates, and examples alongside
+  instructions — keeping everything a role needs in one place.
+
+- **Instruction file strategy:** `AGENTS.md` (Linux Foundation open standard, supported by
+  Codex, Cursor, Copilot, Gemini CLI, and others) holds repo-wide CLD rules. Platform-specific
+  files stay minimal:
+  - `CLAUDE.md` → Claude-specific overrides only; skills carry the role definitions
+  - `.github/agents/*.agent.md` → thin wrappers referencing skills (Copilot reads `.agents/skills/` directly, so these are optional)
+  - Codex reads `AGENTS.md` and `.agents/skills/` natively — no extra files needed
 
 ---
 
@@ -182,7 +195,6 @@ the pilot.
 - `docs/evidence/`
 - `docs/decisions/` — lightweight; most decisions live in PRs, this is for cross-cutting decisions only
 - `docs/experiments/` — outputs from exploration mode
-- `docs/cld/agents/` — canonical role definitions (platform-neutral)
 - `docs/cld/boundaries.md` — what CLD does not claim to solve
 
   0.3. Write minimal document templates (1 each):
@@ -201,18 +213,21 @@ the pilot.
 
 - **Evidence** (`EVID-*.md`) — test result = expected vs actual = decision
 
-  0.4. Write canonical agent role definitions (platform-neutral):
+  0.4. Draft CLD role behaviors (input for Phase 1 skill authoring):
 
-- `docs/cld/agents/discovery.md` — purpose, inputs, outputs, constraints.
+  Write down the key constraints and questions each role must enforce — not yet as
+  SKILL.md files (that's Phase 1), but as working notes that drive skill content:
+
+- **Discovery** — purpose, inputs, outputs, constraints.
   - Must not deliver implementation suggestions before at least one alternative explanation is formulated.
   - Must ask: "What would falsify this hypothesis?"
   - Must propose time-to-evidence target.
 
-- `docs/cld/agents/delivery.md` — implements against the falsification signal.
+- **Delivery** — implements against the falsification signal.
   - Must not write code before the claim and its falsification signal are named.
   - Test level chosen by what validates the behavior, not by convention.
 
-- `docs/cld/agents/review.md` — checks whether the test actually falsifies the hypothesis:
+- **Review** — checks whether the test actually falsifies the hypothesis:
   - Could this result happen if the hypothesis is wrong?
   - What's the most likely alternative explanation for the result?
   - What signal is still missing?
@@ -237,47 +252,55 @@ the pilot.
 
 ---
 
-## Phase 1 — Agent Profiles (Week 2)
+## Phase 1 — Cross-Platform Skills (Week 2)
 
-**Goal:** Project canonical role definitions into platform-specific instruction files. Test on all target platforms.
+**Goal:** Create `.agents/skills/` as the single canonical location for CLD role definitions. Verify all three platforms pick them up and enforce the constraints.
 
 ### Steps
 
-1.1. **`AGENTS.md` at repo root** — single source of truth for CLD rules:
+1.1. **`AGENTS.md` at repo root** — lightweight behavioral contract for all platforms:
 
-- Repo-wide behavioral contract (no code without hypothesis, no scope invention, etc.)
-- Core principle: every step reduces uncertainty. Every next step is blocked until
-  a specific uncertainty-reducing challenge has been answered.
+- Repo-wide rules (no code without hypothesis, no scope invention, etc.)
+- Core principle: every step reduces uncertainty.
 - Falsification-first: every hypothesis must define what would disprove it.
   Alternative hypothesis required. Time-to-evidence target required.
-- Agent forcing functions:
+- Agent forcing functions (brief; full role definitions live in skills):
   - Discovery: must not suggest implementation before alternative explanation exists.
   - Delivery: must not write code before claim + falsification signal are named.
   - Review: must not approve if test only confirms implementation, not hypothesis.
-- References canonical role definitions in `docs/cld/agents/`
+- Points to `.agents/skills/` for full role definitions.
 
-  1.2. **GitHub Copilot projection:**
+  1.2. **Create `.agents/skills/`** — three CLD skill folders, each with a `SKILL.md`:
 
-- `.github/copilot-instructions.md` — imports/mirrors `AGENTS.md` content
-- `.github/agents/discovery.agent.md` — no production code, hypothesis focus,
-  must propose falsification signal and alternative hypothesis
-- `.github/agents/delivery.agent.md` — story-scoped, implements against falsification
-  signal before writing production code
-- `.github/agents/review.agent.md` — traceability, gap detection, anti-gaming heuristics,
-  validates that test level matches the claim (not coverage theater)
+- `cld-discovery/SKILL.md` — role purpose, inputs/outputs, constraints, gate-check
+  references, must-ask questions (falsification signal, alternative hypothesis,
+  time-to-evidence). Trigger: vague request, new initiative, hypothesis not written.
+- `cld-delivery/SKILL.md` — story-scoped delivery, implements against the falsification
+  signal, test-first, no scope invention. Trigger: approved ST-\* with HYP-\* link exists.
+- `cld-review/SKILL.md` — traceability check, anti-gaming heuristics, validates test
+  level matches the claim. Trigger: PR open with linked ST-\*, HYP-\*, EVID-\*.
 
-  1.3. **Claude Code projection:**
+  Each skill bundles: role instructions, references to gate-check scripts, template paths,
+  and a short example. This replaces `docs/cld/agents/` as the canonical role source.
 
-- `CLAUDE.md` at repo root — imports `AGENTS.md` via `See @AGENTS.md for CLD rules.`
-- Claude-specific overrides only (e.g. subdirectory scoping, `@import` references)
-- Discovery/delivery/review separation via subagents or explicit prompt context
+  1.3. **GitHub Copilot:**
 
-  1.4. **OpenAI Codex projection:**
+- Reads `.agents/skills/` natively — no extra files strictly required.
+- Optional thin wrappers in `.github/agents/*.agent.md` for trigger descriptions or
+  Copilot-specific UI labeling (reference skills; do not duplicate content).
 
-- Reads `AGENTS.md` natively — no extra file needed for base rules
-- Sandbox policy: `workspace-write`, approval `on-request`, network off by default
+  1.4. **Claude Code:**
 
-  1.5. **Cross-platform test** against the Phase 0 example:
+- Reads `.agents/skills/` natively.
+- `CLAUDE.md` holds Claude-specific overrides only (subdirectory scoping, slash command
+  mappings). Role definitions stay in skills, not in `CLAUDE.md`.
+
+  1.5. **OpenAI Codex:**
+
+- Reads `AGENTS.md` and `.agents/skills/` natively — no extra files needed.
+- Sandbox policy: `workspace-write`, approval `on-request`, network off by default.
+
+  1.6. **Cross-platform test** against the Phase 0 example:
 
 - Feed the same initiative to discovery role on each platform.
 - Feed the same story to delivery role on each platform.
@@ -290,10 +313,11 @@ the pilot.
 
 ### Exit criteria
 
-- Each agent role behaves noticeably different from a generic coding agent — on every platform.
+- `.agents/skills/` contains all three CLD role skills; no role content duplicated in platform-specific files.
+- Each agent role behaves noticeably different from a generic coding agent — on every platform, driven by the same skill source.
 - Discovery refuses to code. Delivery refuses to invent scope. Review catches gaps.
 - Forcing functions are observable: agents actually block on missing falsification/alternatives.
-- Platform-specific quirks are documented.
+- Platform-specific quirks are documented in `docs/cld/platform-notes.md`.
 
 ---
 
