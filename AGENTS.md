@@ -59,7 +59,7 @@ details. You are optimizing for **uncertainty reduced per test**, not lines cove
 
 ## Agent Roles
 
-Full role definitions in `docs/cld/agents/`. Summary:
+Full role definitions in `.agents/skills/`. Summary:
 
 ### Discovery
 

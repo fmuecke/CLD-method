@@ -39,7 +39,7 @@ prompts/evals/                        — agent eval test cases
 | Phase | Goal                                                | Status      |
 | ----- | --------------------------------------------------- | ----------- |
 | 0     | Repo skeleton + document templates                  | Done        |
-| 1     | AGENTS.md + cross-platform skills (.agents/skills/) | Redo        |
+| 1     | AGENTS.md + cross-platform skills (.agents/skills/) | Done        |
 | 2     | GitHub issue/PR templates + fast-lane definition    | Done        |
 | 3     | Gate checks: pre-commit hooks + CI                  | Done        |
 | 4     | Pilot with real feature work                        | Not started |
