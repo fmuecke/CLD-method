@@ -1,4 +1,4 @@
-# Project: Closed-Loop Delivery (CLD) — v2
+# Project: Closed-Loop Delivery (CLD) — v3
 
 > The goal is not iteration. The goal is a closed loop where every step produces
 > evidence, and progress is only allowed when that evidence reduces uncertainty.
@@ -58,22 +58,30 @@ not a documentation workflow.
 ## What Success Looks Like
 
 - Assumptions are explicit and traceable from issue to merge.
-- Agents cannot bypass hypothesis → story → evidence flow.
+- Agents cannot bypass uncertainty → hypothesis → story → evidence flow.
+- Discovery produces ranked uncertainties before any hypothesis is written.
 - Teams report fewer "built the wrong thing" incidents.
 - Features that shipped are periodically reviewed for actual value vs. maintenance cost.
 - The overhead feels lighter than the rework it prevents.
 
-## Core Principle: Every Step Reduces Uncertainty
+## Core Principle: Every Step Targets the Highest-Value Uncertainty Next
 
 > Every next step is blocked until a specific uncertainty has been reduced.
-> This improves the value signal and lowers the risk of building the wrong thing.
+> Every step must target the highest-value uncertainty next — the one with the
+> most risk reduced per effort. This prevents random exploration, over-analysis,
+> and premature convergence alike.
 
 This principle applies at every level:
 
+- **Discovery** → "What don't we know that could kill this?" → rank uncertainties
+  by risk × effort → select the cheapest high-risk probe first.
 - **Hypothesis** → "What would prove this wrong?" → that question defines the test.
+  Every hypothesis must reference the specific uncertainty it addresses.
 - **Story** → expected behavior (Given/When/Then) _is_ the test spec, not a separate artifact.
+  During discovery, stories can be probes (evidence-first, not feature-first).
 - **Implementation** → write the one test that validates the behavior, then implement against it.
 - **Evidence** → test result = expected vs actual = confirmation or rejection.
+  After each evidence: update the uncertainty list, then decide — continue discovery or exit to delivery.
 - **Review** → doesn't ask "is coverage high enough?" — asks "does the test actually
   falsify the hypothesis if the result is negative?"
 
@@ -94,6 +102,8 @@ CLD uses two kinds of gates:
 Structural requirements that block progress when missing. These catch omissions, not quality:
 
 - Missing hypothesis reference
+- No uncertainty inventory in HYP-\* (at least 2 items that could each independently invalidate the approach, ranked)
+- No selected uncertainty identified
 - No falsification signal defined
 - No test or observation plan
 - No reversal trigger on irreversible decisions
@@ -102,6 +112,8 @@ Structural requirements that block progress when missing. These catch omissions,
 
 Judgment calls that require human or review-agent assessment:
 
+- Is the selected uncertainty actually the highest value (most risk reduced per effort)?
+- Is the probe the cheapest way to test it, or disguised implementation?
 - Is the falsification signal actually discriminating?
 - Is the alternative hypothesis a real competitor or a strawman?
 - Does the evidence type match the hypothesis type?
@@ -139,6 +151,7 @@ the pilot.
 | **Agents generate compliant nonsense**                       | **Anti-gaming heuristics in review; falsification + alternative hypothesis as structural requirements**            |
 | **Validation illusion (test passes ≠ hypothesis confirmed)** | **Falsification criteria force thinking about false positives; hypothesis typing flags evidence/claim mismatches** |
 | **Goodhart's Law on artifacts**                              | **Gate questions, not document checklists; review checks meaning, CI checks structure**                            |
+| **Premature hypothesis (skipping uncertainty reduction)**    | **Discovery micro-loop: uncertainty inventory required before HYP; embedded in HYP-\* for low friction**           |
 
 ## Target Environment
 
@@ -202,26 +215,63 @@ the pilot.
 - **Initiative** (`INIT-*.md`)
 
 - **Hypothesis** (`HYP-*.md`) — must include:
+  - **Uncertainties (embedded, ranked):** at least 2 unknowns that could each independently
+    invalidate the approach, ranked by risk × effort-to-test. Use stable IDs (e.g. `UNC-ADO-001`)
+    so they can be extracted later without refactoring. Each uncertainty: description, risk
+    level, effort to test, status (Untested / In Progress / Reduced / Dismissed / Fatal).
+  - **Selected uncertainty:** the single uncertainty this hypothesis targets — the one
+    with the most risk reduced per effort. One hypothesis → one uncertainty.
   - **Falsification signal:** what result would make this hypothesis unlikely or wrong?
   - **Why a positive result is not trivial:** prevents "user clicked = validated"
   - **Alternative hypothesis:** what else could explain the problem? Why do we prefer the current hypothesis?
   - **Time to evidence:** how quickly can we get signal? (hours / days / weeks). Prefer worse test sooner over perfect test later.
 
-- **Story** (`ST-*.md`) — expected behavior = the test spec; includes:
-  - Chosen test level and why that level is sufficient
-  - Decision type: reversible (low cost to undo) or irreversible (high cost / user impact)
+- **Story** (`ST-*.md`) — two modes:
+  - **Probe story** (during discovery): evidence-first, not feature-first. Goal is to
+    reduce a specific uncertainty, not to ship a feature. References a UNC-ID.
+    Example: "Fetch 10 ADO items via API → inspect payload for required fields."
+  - **Delivery story** (after discovery exit): expected behavior = the test spec. Only
+    allowed after the discovery exit contract is met. Includes chosen test level and
+    decision type (reversible / irreversible).
 
-- **Evidence** (`EVID-*.md`) — test result = expected vs actual = decision
+- **Evidence** (`EVID-*.md`) — test result = expected vs actual = decision.
+  Must update the uncertainty status in the originating HYP after each probe.
 
-  0.4. Draft CLD role behaviors (input for Phase 1 skill authoring):
+  **Design note: embedded UNC → separate UNC-\* extraction triggers.**
+  Uncertainties start embedded in HYP-\* to minimize friction and maximize adoption.
+  Extract to standalone `docs/uncertainties/UNC-*.md` files only when one of these
+  triggers fires:
+  - **Reuse emerges:** the same uncertainty appears across multiple HYPs (e.g. API
+    rate limits, identity model, permissions).
+  - **Tracking becomes painful:** you ask "what uncertainties are still open?" and
+    can't answer without reading every HYP.
+  - **Scale increases:** multiple people or agents work in parallel and need shared
+    uncertainty state.
+    Because UNC-IDs are stable (e.g. `UNC-ADO-001`), extraction preserves all existing
+    references — no refactoring required.
+
+    0.4. Draft CLD role behaviors (input for Phase 1 skill authoring):
 
   Write down the key constraints and questions each role must enforce — not yet as
   SKILL.md files (that's Phase 1), but as working notes that drive skill content:
 
 - **Discovery** — purpose, inputs, outputs, constraints.
+  - **Discovery micro-loop** (mandatory before any HYP-\* is created):
+    1. Produce uncertainty inventory (≥2 items that could each independently invalidate the approach, ranked by risk × effort-to-test).
+    2. Select the highest-value uncertainty (most risk reduced per effort).
+    3. Define the smallest evidence probe (not a feature — a question with a test).
+    4. Execute probe → produce EVID-\*.
+    5. Update uncertainty list (status: Reduced / Invalidated / still Untested).
+    6. Repeat or exit to hypothesis when sufficiently reduced.
   - Must not deliver implementation suggestions before at least one alternative explanation is formulated.
   - Must ask: "What would falsify this hypothesis?"
   - Must propose time-to-evidence target.
+  - **Must refuse:** full solution design, multi-slice planning, architecture proposals.
+  - **Anti-pattern detection — must flag if:**
+    - Hypothesis contains system-level words ("sync service", "platform", etc.) without a concrete entity
+    - No concrete API, entity, or data shape mentioned
+    - No sample size defined in the probe (e.g. "10 items", "5 requests")
+    - Probe requires writing production code
 
 - **Delivery** — implements against the falsification signal.
   - Must not write code before the claim and its falsification signal are named.
@@ -248,6 +298,8 @@ the pilot.
 ### Exit criteria
 
 - One complete example chain exists and feels lightweight enough to use.
+- Uncertainty inventory embedded in HYP feels natural, not bureaucratic.
+- Probe stories feel distinct from delivery stories — lighter, question-focused.
 - Falsification signal and alternative hypothesis feel natural, not bureaucratic.
 
 ---
@@ -274,7 +326,15 @@ the pilot.
 
 - `cld-discovery/SKILL.md` — role purpose, inputs/outputs, constraints, gate-check
   references, must-ask questions (falsification signal, alternative hypothesis,
-  time-to-evidence). Trigger: vague request, new initiative, hypothesis not written.
+  time-to-evidence). **Discovery micro-loop enforcement:**
+  - Mandatory outputs: uncertainty inventory (≥2 independently fatal items), ranked uncertainties,
+    selected uncertainty, smallest probe (not feature).
+  - Mandatory constraints: must refuse full solution design, multi-slice planning,
+    architecture proposals.
+  - Anti-pattern detection: flag hypothesis with system-level words but no concrete
+    entity, no sample size in probe, probe that requires production code.
+  - Trigger: vague request, new initiative, hypothesis not written, **or HYP-\*
+    requested but no uncertainty inventory exists** (block until inventory is done).
 - `cld-delivery/SKILL.md` — story-scoped delivery, implements against the falsification
   signal, test-first, no scope invention. Trigger: approved ST-\* with HYP-\* link exists.
 - `cld-review/SKILL.md` — traceability check, anti-gaming heuristics, validates test
@@ -316,6 +376,8 @@ the pilot.
 - `.agents/skills/` contains all three CLD role skills; no role content duplicated in platform-specific files.
 - Each agent role behaves noticeably different from a generic coding agent — on every platform, driven by the same skill source.
 - Discovery refuses to code. Delivery refuses to invent scope. Review catches gaps.
+- **Discovery produces uncertainty inventory before any hypothesis — on every platform.**
+- **Discovery blocks when asked for HYP without prior uncertainty reduction.**
 - Forcing functions are observable: agents actually block on missing falsification/alternatives.
 - Platform-specific quirks are documented in `docs/cld/platform-notes.md`.
 
@@ -338,8 +400,20 @@ the pilot.
 - Outputs: observations, candidate hypotheses.
 - Time-boxed: must define when exploration ends and what "enough to hypothesize" looks like.
 - This prevents fake precision early and keeps CLD honest when understanding is still forming.
+- **Mandatory path to HYP:** exploration (with uncertainty inventory) is the required
+  entry point for any non-fast-lane work. You cannot create a HYP-\* without having
+  produced and ranked uncertainties first. The exploration issue is the natural home
+  for that pre-hypothesis work.
 
-  2.3. Create PR template (`.github/pull_request_template.md`):
+  2.3. **Discovery exit contract** (hard gate — checklist in PR or issue):
+
+  Canonical checklist: `.agents/skills/cld-discovery/SKILL.md` → **Discovery Exit Contract**.
+
+  This contract becomes a CI-checkable gate: PRs that introduce delivery stories
+  (ST-\* without `Type: Probe`) must reference a HYP-\* where at least one
+  uncertainty status is "Reduced" with a linked EVID.
+
+  2.4. Create PR template (`.github/pull_request_template.md`):
 
 - Linked references (initiative, hypothesis, story).
 - **Gate questions** (not just fields to fill):
@@ -353,7 +427,7 @@ the pilot.
   - Reversal trigger: what would make us revisit this?
 - Post-release observation plan.
 
-  2.4. Define fast-lane criteria:
+  2.5. Define fast-lane criteria:
 
 - **Decision anchor: reversibility × blast radius.**
   Not every change deserves the full closed loop. The triage rule:
@@ -371,7 +445,8 @@ the pilot.
 ### Exit criteria
 
 - Every new issue and PR is guided by the template.
-- Exploration mode exists and produces hypotheses, not code.
+- Exploration mode exists, is the mandatory path to HYP, and produces hypotheses, not code.
+- Discovery exit contract is clear and CI-checkable.
 - Fast-lane exists, is reversibility-based, and doesn't feel like cheating.
 
 ---
@@ -398,6 +473,10 @@ CI catches everything else server-side and cannot be skipped
   3.2. **CI gate checks — hard gates** (structural, non-bypassable):
 
 - `scripts/check-story-links.sh` — referenced story file must contain a `HYP-*` link.
+- `scripts/check-uncertainties.sh` — referenced `HYP-*` must have a `## Uncertainties`
+  section with at least 2 items that could each independently invalidate the approach,
+  a `## Selected Uncertainty` section, and at least one uncertainty with status "Reduced"
+  or "In Progress" (for delivery stories). _(planned — Phase 3.x)_
 - `scripts/check-falsification.sh` — referenced `HYP-*` must have a non-empty
   falsification signal and alternative hypothesis section.
 - `scripts/check-test-evidence.sh` — PR must include at least one test change that
@@ -405,6 +484,8 @@ CI catches everything else server-side and cannot be skipped
   new test is needed). Validates presence, not coverage metrics.
 - `scripts/check-decision-fields.sh` — for PRs tagged irreversible/high-impact:
   confidence level and reversal trigger must be present.
+- `scripts/check-discovery-exit.sh` — for PRs introducing delivery stories: verify
+  discovery exit contract is met (at least one UNC status = "Reduced" with EVID link). _(planned — Phase 3.x)_
 - Cross-file validation that pre-commit hooks cannot do locally.
 
   3.3. **CI soft checks — anti-gaming flags** (warnings, not blockers):
@@ -412,6 +493,11 @@ CI catches everything else server-side and cannot be skipped
 - Hypothesis phrasing similarity to implementation code (basic string/token overlap).
 - Alternative hypothesis suspiciously short or similar to primary.
 - Trivial falsification signals (too generic, e.g. "it doesn't work").
+- **Hypothesis too broad** — keyword heuristic: contains "sync", "service", "platform",
+  "system" without a concrete entity or API named.
+- **No sample size in probe** — probe story lacks a concrete quantity.
+- **Probe looks like implementation** — probe story references production code paths
+  or introduces non-disposable artifacts.
 - These produce warnings in the PR, not failures. Review agent or human reviewer acts on them.
 
   3.4. Create `.github/workflows/cld-gate-check.yml` running the full script suite.
@@ -440,7 +526,7 @@ Validate that the overhead costs less than the rework it prevents.
 
 4.2. Run each slice through the full CLD workflow:
 
-- Issue → Initiative → Hypothesis (with falsification + alternative) → Story → Implementation → PR (with decision record) → Review → Evidence
+- Issue → Exploration (uncertainty inventory) → Discovery micro-loop (probe → evidence → update) → Hypothesis → Story → Implementation → PR (with decision record) → Review → Evidence
 
   4.3. Rotate agent platforms across slices:
 
@@ -455,33 +541,48 @@ Validate that the overhead costs less than the rework it prevents.
 - Which platform respects forcing functions best out of the box?
 - Do agents generate genuine falsification signals or compliant filler?
 - Do agents produce real alternative hypotheses or strawmen?
+- **Do agents produce genuine uncertainty inventories or fill-in-the-blank lists?**
+- **Do agents respect the micro-loop (probe → evidence → update) or try to skip to delivery?**
 - Which templates feel too heavy?
 - Which CI checks produce false positives?
 - Do anti-gaming flags catch real issues or just noise?
 
-  4.5. **Validate the core bet:**
+  4.5. **Synthesis checkpoints** (lightweight):
+
+  Every 3–5 EVID produced during a slice, write a short synthesis:
+  - What did we learn?
+  - What constraints emerged?
+  - What system shape is now obvious that wasn't before?
+
+  This prevents discovery from fragmenting into disconnected probes.
+
+  4.6. **Validate the core bet:**
 
 - Did falsification signals catch anything that "smallest possible test" alone would have missed?
 - Did alternative hypotheses surface real alternatives or just waste time?
 - Did decision records with reversal triggers lead to any actual reversals?
+- **Did the uncertainty inventory change the sequencing of work?**
+- **Did probe stories prevent premature implementation?**
+- **Did the discovery exit contract catch slices that would have left discovery too early?**
 - At least one case where the closed loop prevented building the wrong thing.
 
-  4.6. Conduct a retrospective specifically on CLD:
+  4.7. Conduct a retrospective specifically on CLD:
 
 - Did it change what got built?
 - Did it surface assumptions that would have been missed?
 - What's the actual overhead vs perceived overhead?
 - Which platform is the best fit for which role?
-- **Which hardening additions (falsification, alternatives, decision records) earned their keep?**
+- **Which hardening additions (falsification, alternatives, decision records, uncertainty inventory, discovery micro-loop) earned their keep?**
 
-  4.7. Refine templates, agent instructions, and CI checks based on findings.
+  4.8. Refine templates, agent instructions, and CI checks based on findings.
 
 ### Exit criteria
 
 - At least one case where the closed loop prevented building the wrong thing.
+- **At least one case where the discovery micro-loop changed sequencing vs. what would have been built without it.**
 - Platform comparison documented in `docs/cld/platform-notes.md`.
 - CLD does not feel like pure overhead.
-- **Evidence on whether hardening additions (falsification, alternatives, anti-gaming) are net positive.**
+- **Evidence on whether hardening additions (falsification, alternatives, anti-gaming, uncertainty inventory, discovery micro-loop) are net positive.**
 
 ---
 
@@ -496,11 +597,18 @@ Validate that the overhead costs less than the rework it prevents.
 - Discovery: does it challenge vague requests? Does it produce alternatives?
   Does it propose a falsification signal for each hypothesis?
   Does it resist jumping to implementation before alternatives are explored?
+  **Does it produce a ranked uncertainty inventory (≥2 independently fatal items) before any hypothesis?**
+  **Does it block when asked for HYP without prior uncertainty reduction?**
+  **Does it flag anti-patterns (system-level hypothesis without entity, no sample size, probe = production code)?**
+  **Does it run the micro-loop (probe → evidence → update) rather than jumping straight to HYP?**
 - Delivery: does it stay within scope? Does it write the test that matches the
   falsification signal before production code? Does it choose the right test level?
+  **Does it reject delivery stories when the discovery exit contract is not met?**
 - Review: does it detect missing traceability? Does it flag coverage theater?
   Does it catch gaming patterns (hypothesis ≈ implementation, strawman alternatives,
   trivial falsification, evidence-type mismatch)?
+  **Does it flag missing or incomplete uncertainty inventories?**
+  **Does it check that the selected uncertainty is the highest-value one?**
 
   5.2. Build a small eval corpus from Phase 4 real examples (across all platforms).
 
@@ -537,7 +645,8 @@ Validate that the overhead costs less than the rework it prevents.
 # Summary
 
 > **Closed-Loop Delivery** — a system of skeptical forcing functions that prevents
-> AI agents and humans from skipping the uncomfortable parts: stating assumptions,
+> AI agents and humans from skipping the uncomfortable parts: surfacing uncertainties,
+> ranking them by value, probing the riskiest ones cheaply, stating assumptions,
 > exploring alternatives, defining what would prove them wrong, and validating
 > before committing.
 >
@@ -562,6 +671,26 @@ Changes based on devil's advocate analysis and targeted hardening:
 | Time-to-evidence constraint                                               | Analysis paralysis                                              | Tier 2                        |
 | Known boundaries documented                                               | Wrong failure mode (#1), tacit knowledge (#3), incentives (#10) | Scope clarity                 |
 | Reframe: decision gate system, not artifact flow                          | Process theater (#4), core identity                             | Foundational                  |
+
+# Appendix: Hardening Changelog (v2 → v3)
+
+Changes based on discovery gap analysis — CLD was strong on gates but weak on
+navigation inside discovery. People rushed to hypothesis without reducing uncertainty first.
+
+| Change                                                                               | Addresses                                                               | Impact           |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- | ---------------- |
+| Embedded uncertainty inventory in HYP-\* (ranked, with extractable IDs)              | Premature hypothesis, weak alternatives, rushing to implementation      | Tier 1           |
+| Discovery micro-loop (uncertainty → probe → evidence → update → repeat/exit)         | Underspecified discovery, no sequencing of learning                     | Tier 1           |
+| Discovery exit contract (hard gate checklist)                                        | People leaving discovery too early, no minimum evidence bar             | Tier 1           |
+| Probe stories (ST-\* Type: Probe) distinct from delivery stories                     | Probes disguised as features, evidence-first vs feature-first confusion | Tier 1           |
+| Exploration as mandatory path to HYP (not optional)                                  | Bypassing uncertainty reduction, jumping straight to solution           | Tier 1           |
+| Anti-pattern detection in discovery skill (system-level words, no sample size, etc.) | Agent gaming, compliant nonsense in uncertainty inventories             | Tier 2           |
+| Synthesis checkpoints (every 3–5 EVID)                                               | Discovery fragmentation, disconnected probes                            | Tier 2           |
+| Core principle refined: "highest-value uncertainty next" (not just "reduce any")     | Random exploration, over-analysis                                       | Design principle |
+| CI gate: `## Uncertainties` section required in HYP-\*                               | Skipping uncertainty inventory                                          | Enforcement      |
+| CI gate: discovery exit contract check for delivery stories                          | Entering delivery without evidence                                      | Enforcement      |
+| Soft gate: hypothesis-too-broad keyword heuristic                                    | System-level hypotheses without concrete entities                       | Enforcement      |
+| Design: embedded UNC with extractable IDs (not separate artifact yet)                | Adoption friction vs structural rigor tradeoff                          | Migration-safe   |
 
 ---
 

@@ -1,7 +1,9 @@
 # AGENTS.md — Closed-Loop Delivery (CLD)
 
-> Every hypothesis implies its own test. Find the cheapest test that would confirm
-> or reject it. Implement against that test. The test result is the evidence.
+> Before you can state a hypothesis, you must know what you don't know.
+> Before you can test a hypothesis, you must target the highest-value uncertainty.
+> Every hypothesis implies its own test. Find the cheapest probe that would confirm
+> or reject it. The probe result is the evidence.
 
 This file is the single source of truth for CLD behavioral rules. All platform-specific
 instruction files (CLAUDE.md, copilot-instructions.md) derive from this.
@@ -15,24 +17,42 @@ epistemic discipline into the repo structure itself.
 
 ## Mandatory Workflow
 
-**Issue → INIT → HYP → ST → IMPL → PR → Review → EVID**
+**Issue → INIT → Uncertainty Inventory → Probe(s) → HYP → ST → IMPL → PR → Review → EVID**
 
 Before writing any code, answer: _"What assumption does this code test?"_
 If you cannot answer, stop and return to discovery.
+
+Before writing any hypothesis, answer: _"What don't we know that could kill this?"_
+If you cannot list at least 2 uncertainties that could each independently invalidate the idea — ranked by risk × effort — you are not ready to hypothesize. Run the discovery micro-loop first.
 
 No step can be bypassed without explicit justification. The chain is the constraint.
 
 ## Artifact Types
 
-| Prefix | Type           | Location            | Purpose                                            |
-| ------ | -------------- | ------------------- | -------------------------------------------------- |
-| INIT   | Initiative     | `docs/initiatives/` | Describe the pain, not a solution                  |
-| HYP    | Hypothesis     | `docs/hypotheses/`  | Falsifiable assumption with smallest possible test |
-| ST     | Story          | `docs/stories/`     | Bounded slice — expected behavior IS the test spec |
-| IMPL   | Implementation | PR / commit         | Code change — must reference a ST-\*               |
-| EVID   | Evidence       | `docs/evidence/`    | Expected vs actual — must end with a decision      |
+| Prefix | Type             | Location            | Purpose                                                    |
+| ------ | ---------------- | ------------------- | ---------------------------------------------------------- |
+| INIT   | Initiative       | `docs/initiatives/` | Describe the pain, not a solution                          |
+| HYP    | Hypothesis       | `docs/hypotheses/`  | Falsifiable assumption with embedded uncertainty inventory |
+| ST     | Story (Probe)    | `docs/stories/`     | Evidence-first probe to reduce a specific uncertainty      |
+| ST     | Story (Delivery) | `docs/stories/`     | Bounded slice — expected behavior IS the test spec         |
+| IMPL   | Implementation   | PR / commit         | Code change — must reference a ST-\*                       |
+| EVID   | Evidence         | `docs/evidence/`    | Expected vs actual — must end with a decision + UNC update |
 
 Templates: `docs/cld/templates/`
+
+## Discovery Micro-Loop
+
+Before any hypothesis is created, discovery must run this loop:
+
+1. **Uncertainty inventory** — list at least 2 unknowns that could each independently kill the idea, ranked by risk × effort-to-test. Use stable IDs (e.g. `UNC-ADO-001`).
+2. **Select** — pick the uncertainty with the most risk reduced per effort. One at a time.
+3. **Probe** — define the cheapest action that gives signal. Must include a concrete sample size. This becomes a probe story (ST-\* with Type: Probe).
+4. **Evidence** — execute the probe, record results in EVID-\*, update uncertainty status in HYP-\* (Reduced / Dismissed / Fatal).
+5. **Decide** — Fatal result? → abort to INIT. More unknowns? → back to step 2. Enough reduced? → exit to hypothesis.
+
+**Hard rule:** no HYP-\* without at least one uncertainty reduced with evidence.
+
+The discovery exit contract defines the minimum bar for moving from discovery to delivery. See the discovery skill for the full checklist.
 
 ## Falsification-First
 
@@ -64,23 +84,23 @@ Full role definitions in `.agents/skills/`. Summary:
 ### Discovery
 
 - **Inputs:** Vague request, issue, or problem description
-- **Outputs:** INIT-\*.md, HYP-\*.md, alternatives analysis (2–3 options with tradeoffs)
-- **Must do:** Challenge every problem statement. For each hypothesis, produce a falsification signal, a genuine alternative hypothesis, and a time-to-evidence target.
-- **Must not do:** Write production code. Create ST-\*.md. Deliver implementation suggestions before at least one alternative explanation is formulated.
+- **Outputs:** Uncertainty inventory (ranked), probe stories, INIT-\*.md, HYP-\*.md (with embedded uncertainties), alternatives analysis (2–3 options with tradeoffs)
+- **Must do:** Run the discovery micro-loop before any hypothesis. Produce uncertainty inventory (≥2 independently fatal unknowns, ranked). For each hypothesis, produce a falsification signal, a genuine alternative hypothesis, and a time-to-evidence target. Flag anti-patterns (hypothesis too broad, no sample size, probe = production code).
+- **Must not do:** Write production code. Create delivery stories. Deliver implementation suggestions before at least one alternative explanation is formulated. Skip the uncertainty inventory. Produce architecture designs or multi-slice plans.
 
 ### Delivery
 
 - **Inputs:** Approved ST-\*.md + linked HYP-\*.md with a named falsification signal
-- **Outputs:** Code, tests, EVID-\*.md
-- **Must do:** Confirm falsification signal exists before writing code. Write the test that matches it first. Produce EVID-\*.md with expected vs actual.
-- **Must not do:** Write code before claim and falsification signal are named. Invent requirements. Merge without a linked ST-\*.
+- **Outputs:** Code, tests, EVID-\*.md, uncertainty status updates (for probes)
+- **Must do:** Check story type (Probe vs Delivery). For probes: execute, record evidence, update uncertainty. For delivery: verify discovery exit contract is met before writing code. Confirm falsification signal exists. Write the test that matches it first. Produce EVID-\*.md with expected vs actual.
+- **Must not do:** Write code before claim and falsification signal are named. Start delivery work when the discovery exit contract is not met. Turn probe stories into production code. Invent requirements. Merge without a linked ST-\*.
 
 ### Review
 
 - **Inputs:** PR with linked ST-\*, HYP-\*, EVID-\*
 - **Outputs:** Approval / rejection / conditional approval with specific gaps listed
-- **Must do:** Verify the full chain. Check test level matches the claim type. Apply anti-gaming heuristics (strawman alternatives, trivial falsification, hypothesis ≈ implementation). Check hypothesis-evidence type match.
-- **Must not do:** Approve a PR without a linked ST-\*. Accept "tests pass" as sufficient evidence.
+- **Must do:** Verify the full chain including uncertainty inventory. Check that at least one uncertainty is "Reduced" with evidence. Check test level matches the claim type. Apply anti-gaming heuristics (strawman alternatives, trivial falsification, hypothesis ≈ implementation, fake uncertainty inventory, hypothesis too broad). For delivery stories: verify the discovery exit contract is met.
+- **Must not do:** Approve a PR without a linked ST-\*. Accept "tests pass" as sufficient evidence. Approve delivery stories when the discovery exit contract is not met.
 
 ## Fast-lane
 
@@ -123,6 +143,9 @@ Fast-lane features should be periodically reviewed for actual value vs. maintena
 **CI** (non-bypassable):
 
 - `scripts/check-story-links.sh` — referenced ST-\* contains a HYP-\* link
+- `scripts/check-uncertainties.sh` — referenced HYP-\* has uncertainty inventory (≥2 independently fatal items), selected uncertainty, and at least one status update _(planned — Phase 3.x)_
+- `scripts/check-falsification.sh` — referenced HYP-\* has falsification signal and alternative hypothesis
 - `scripts/check-test-evidence.sh` — PR includes test change or explicit justification
+- `scripts/check-discovery-exit.sh` — for delivery stories: discovery exit contract is met _(planned — Phase 3.x)_
 
 Workflow: `.github/workflows/cld-gate-check.yml`
