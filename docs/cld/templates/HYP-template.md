@@ -1,6 +1,6 @@
 # HYP-YYYY-NNN: [Assumption being tested]
 
-Status: Open | In Test | Confirmed | Rejected
+Status: Open | In Test | Confirmed | Rejected | Archived
 Initiative: INIT-YYYY-NNN
 
 <!--
@@ -158,6 +158,14 @@ _Low / Medium / High — and why._
 ## Validation Plan
 
 _Broader test plan if the Smallest Possible Test is just the first step — what sequence of evidence would fully validate or falsify this?_
+
+## Archive Reason
+
+<!-- Fill in only if Status = Archived. Explain why this hypothesis was superseded
+     or abandoned. The file stays in docs/hypotheses/ — do not delete or move it.
+     The decision trail is part of the system's value. -->
+
+_(leave blank unless archiving)_
 
 ## Stories Derived From This Hypothesis
 

@@ -1,15 +1,14 @@
-# Project: Closed-Loop Delivery (CLD) — v3
+# Project: Closed-Loop Delivery (CLD) — v4
 
-> The goal is not iteration. The goal is a closed loop where every step produces
-> evidence, and progress is only allowed when that evidence reduces uncertainty.
+> **AI makes building cheap but doesn't make being wrong cheaper.**
 
-CLD is a system of skeptical forcing functions around decisions under uncertainty —
-not a documentation workflow.
+CLD is a repo-native system of structured probes and enforceable gates. The repo
+carries not just behavior but decision history and discarded paths.
 
 ## Working Hypothesis
 
 > AI coding agents remove execution cost but amplify the cost of wrong assumptions.
-> If we embed epistemic discipline (explicit assumptions, forced validation, evidence capture)
+> If we embed structured skepticism (explicit assumptions, forced validation, evidence capture)
 > into the repository structure and agent interactions, teams will build the right thing more
 > often — without relying on individual willpower.
 
@@ -64,6 +63,46 @@ not a documentation workflow.
 - Features that shipped are periodically reviewed for actual value vs. maintenance cost.
 - The overhead feels lighter than the rework it prevents.
 
+## What CLD Is
+
+CLD treats hypotheses as source code for uncertainty. They compile into structured
+probes, CI enforces the gates at runtime, review interprets the results.
+
+### Probes, not just tests
+
+A **probe** is any mechanism that reduces uncertainty about a hypothesis.
+
+- **Verification probes** — automated: unit tests, integration tests, CI checks.
+- **Validation probes** — experimental: observations, runtime metrics, usage data,
+  release experiments.
+
+Calling everything "tests" collapses a critical distinction. A passing unit test
+proves implementation consistency. It usually cannot prove user value. CLD keeps
+the distinction explicit so the evidence type matches the claim type.
+
+### Three enforcement layers
+
+| Layer        | What it does                                              | Automatable? |
+| ------------ | --------------------------------------------------------- | ------------ |
+| Structural   | Links exist, fields filled, traceability chain intact     | Yes (CI)     |
+| Executable   | Probes run, results attached, evidence recorded           | Mostly (CI)  |
+| Interpretive | Results actually discriminate, hypothesis updated soundly | No (review)  |
+
+Most frameworks stop at layer 1. Layer 2 makes gaming harder — you can fake a
+document, you can't easily fake a discriminating probe result.
+
+### The system includes its dead ends
+
+The repo is not just working code. It is:
+
+> **behavior + decision history + discarded paths**
+
+Failed and falsified hypotheses are first-class artifacts. They persist by default
+so teams don't re-explore the same dead ends. To archive a superseded hypothesis:
+set `Status: Archived` and fill in `Archive reason:` in the HYP frontmatter. The
+file stays in `docs/hypotheses/` — nothing moves to a trash folder. The decision
+trail is part of the system's value, not cleanup noise.
+
 ## Core Principle: Every Step Targets the Highest-Value Uncertainty Next
 
 > Every next step is blocked until a specific uncertainty has been reduced.
@@ -75,23 +114,25 @@ This principle applies at every level:
 
 - **Discovery** → "What don't we know that could kill this?" → rank uncertainties
   by risk × effort → select the cheapest high-risk probe first.
-- **Hypothesis** → "What would prove this wrong?" → that question defines the test.
+- **Hypothesis** → "What would prove this wrong?" → that question defines the probe.
   Every hypothesis must reference the specific uncertainty it addresses.
 - **Story** → expected behavior (Given/When/Then) _is_ the test spec, not a separate artifact.
   During discovery, stories can be probes (evidence-first, not feature-first).
-- **Implementation** → write the one test that validates the behavior, then implement against it.
-- **Evidence** → test result = expected vs actual = confirmation or rejection.
+- **Implementation** → write the test that validates the behavior, then implement against it.
+- **Evidence** → probe result = expected vs actual = confirmation or rejection.
+  A probe result is not validation. Validation is an interpretation step over the evidence.
   After each evidence: update the uncertainty list, then decide — continue discovery or exit to delivery.
-- **Review** → doesn't ask "is coverage high enough?" — asks "does the test actually
+- **Review** → doesn't ask "is coverage high enough?" — asks "does the probe actually
   falsify the hypothesis if the result is negative?"
 
-Test level (unit, integration, E2E, manual observation) is chosen by what's simplest
-to validate the claim — not by convention, not by coverage targets. A well-chosen
-integration test that proves the behavior beats 50 unit tests that prove implementation
-details.
+Probe type (unit test, integration test, E2E, manual observation, runtime metric,
+release experiment) is chosen by what's simplest to validate the claim — not by
+convention, not by coverage targets. A well-chosen integration test that proves the
+behavior beats 50 unit tests that prove implementation details. A usage metric may
+be the only valid probe for a value hypothesis.
 
 This kills the coverage illusion: you're not optimizing for lines covered,
-you're optimizing for **uncertainty reduced per test**.
+you're optimizing for **uncertainty reduced per probe**.
 
 ## Design Philosophy: Skeptical Forcing Functions
 
@@ -644,11 +685,17 @@ Validate that the overhead costs less than the rework it prevents.
 
 # Summary
 
-> **Closed-Loop Delivery** — a system of skeptical forcing functions that prevents
-> AI agents and humans from skipping the uncomfortable parts: surfacing uncertainties,
-> ranking them by value, probing the riskiest ones cheaply, stating assumptions,
-> exploring alternatives, defining what would prove them wrong, and validating
-> before committing.
+> **AI makes building cheap but doesn't make being wrong cheaper.** Spec-driven
+> frameworks structure intent. Agile frameworks structure work. CLD structures
+> belief under uncertainty.
+>
+> CLD is a repo-native system of structured probes and enforceable gates —
+> tests, checks, observations, reversal triggers — that govern what the system
+> is allowed to become.
+>
+> The repo carries not just behavior but decision history and discarded paths.
+> Failed hypotheses persist so teams don't re-explore the same dead ends.
+> Superseded learnings can be archived — but never silently discarded.
 >
 > Every gate asks one question: did you reduce enough uncertainty to continue?
 
@@ -691,6 +738,22 @@ navigation inside discovery. People rushed to hypothesis without reducing uncert
 | CI gate: discovery exit contract check for delivery stories                          | Entering delivery without evidence                                      | Enforcement      |
 | Soft gate: hypothesis-too-broad keyword heuristic                                    | System-level hypotheses without concrete entities                       | Enforcement      |
 | Design: embedded UNC with extractable IDs (not separate artifact yet)                | Adoption friction vs structural rigor tradeoff                          | Migration-safe   |
+
+# Appendix: Hardening Changelog (v3 → v4)
+
+Changes based on identity sharpening — CLD was described as a process framework but
+is actually a repo-native hypothesis control system. Language and framing updated to
+match.
+
+| Change                                                                              | Addresses                                                         | Impact           |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------- |
+| USP reframed: "structures belief under uncertainty" (vs intent, vs work)            | Weak differentiation from BMAD, spec-driven, Agile                | Foundational     |
+| Identity: "repo-native control system", not "workflow framework"                    | Underselling CLD as process documentation                         | Foundational     |
+| "Probe" as unifying concept (verification + validation probes)                      | Collapsing everything into "tests" → TDD-with-extra-steps risk    | Tier 1           |
+| Three enforcement layers: structural, executable, interpretive                      | Only structural gates described; executable/interpretive implicit | Tier 1           |
+| "test ≠ evidence ≠ validation" made explicit                                        | Validation illusion — passing test conflated with confirmed claim | Tier 1           |
+| Dead ends as first-class artifacts (persist by default, archive with justification) | Success-biased storytelling, re-exploring same dead ends          | Design principle |
+| "System = behavior + decision history + discarded paths"                            | Repo seen as just code, not as decision record                    | Design principle |
 
 ---
 
