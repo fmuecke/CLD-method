@@ -33,6 +33,12 @@ jobs:
       - name: Hypotheses have falsification signal and alternative
         run: bash scripts/check-falsification.sh
 
+      - name: Hypotheses have uncertainty inventory and selected uncertainty
+        run: bash scripts/check-uncertainties.sh
+
+      - name: Delivery stories meet discovery exit contract
+        run: bash scripts/check-discovery-exit.sh
+
       - name: Test evidence present
         env:
           BASE_BRANCH: ${{ github.base_ref }}

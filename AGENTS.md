@@ -143,9 +143,9 @@ Fast-lane features should be periodically reviewed for actual value vs. maintena
 **CI** (non-bypassable):
 
 - `scripts/check-story-links.sh` — referenced ST-\* contains a HYP-\* link
-- `scripts/check-uncertainties.sh` — referenced HYP-\* has uncertainty inventory (≥2 independently fatal items), selected uncertainty, and at least one status update _(planned — Phase 3.x)_
+- `scripts/check-uncertainties.sh` — referenced HYP-\* has uncertainty inventory (≥2 independently fatal items) and selected uncertainty
 - `scripts/check-falsification.sh` — referenced HYP-\* has falsification signal and alternative hypothesis
 - `scripts/check-test-evidence.sh` — PR includes test change or explicit justification
-- `scripts/check-discovery-exit.sh` — for delivery stories: discovery exit contract is met _(planned — Phase 3.x)_
+- `scripts/check-discovery-exit.sh` — for delivery stories: at least one uncertainty Reduced with an EVID-\* link
 
 Workflow: `.github/workflows/cld-gate-check.yml`

@@ -62,8 +62,8 @@ This is especially important when a probe result invalidates an uncertainty that
 - `scripts/check-pr-links.sh` — verifies PR body references at least one `ST-*`
 - `scripts/check-story-links.sh` — verifies referenced `ST-*` contains a `HYP-*` link
 - `scripts/check-test-evidence.sh` — verifies PR includes a test change or explicit justification
-- `scripts/check-uncertainties.sh` — verifies `HYP-*` has uncertainty inventory with required sections _(planned — Phase 3.x)_
-- `scripts/check-discovery-exit.sh` — verifies discovery exit contract is met for delivery stories _(planned — Phase 3.x)_
+- `scripts/check-uncertainties.sh` — verifies `HYP-*` has uncertainty inventory (≥2 rows) and selected uncertainty
+- `scripts/check-discovery-exit.sh` — verifies at least one uncertainty Reduced with an EVID-\* link (delivery stories only)
 
 ## Output Checklist
 

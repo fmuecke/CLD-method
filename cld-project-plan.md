@@ -515,9 +515,7 @@ CI catches everything else server-side and cannot be skipped
 
 - `scripts/check-story-links.sh` — referenced story file must contain a `HYP-*` link.
 - `scripts/check-uncertainties.sh` — referenced `HYP-*` must have a `## Uncertainties`
-  section with at least 2 items that could each independently invalidate the approach,
-  a `## Selected Uncertainty` section, and at least one uncertainty with status "Reduced"
-  or "In Progress" (for delivery stories). _(planned — Phase 3.x)_
+  section with at least 2 UNC-\* rows, and a non-empty `## Selected Uncertainty` section.
 - `scripts/check-falsification.sh` — referenced `HYP-*` must have a non-empty
   falsification signal and alternative hypothesis section.
 - `scripts/check-test-evidence.sh` — PR must include at least one test change that
@@ -526,7 +524,7 @@ CI catches everything else server-side and cannot be skipped
 - `scripts/check-decision-fields.sh` — for PRs tagged irreversible/high-impact:
   confidence level and reversal trigger must be present.
 - `scripts/check-discovery-exit.sh` — for PRs introducing delivery stories: verify
-  discovery exit contract is met (at least one UNC status = "Reduced" with EVID link). _(planned — Phase 3.x)_
+  at least one UNC status = "Reduced" with a linked EVID-\*.
 - Cross-file validation that pre-commit hooks cannot do locally.
 
   3.3. **CI soft checks — anti-gaming flags** (warnings, not blockers):
